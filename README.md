@@ -12,7 +12,7 @@ Rongbao Illustrations 是一个 Codex Skill，用来指导 AI Agent 为中文文
 
 它不是通用插画 prompt，也不是 PPT 信息图模板。它的核心目标是：先理解文章里的认知锚点，再把其中一个判断、流程、结构、状态或隐喻，变成一张有记忆点的 16:9 手绘解释图。
 
-默认视觉 IP 是“绒宝”：参考 `ian-xiaohei-illustrations/assets/rongbao.png` 的黄色圆形主体、青绿色叶耳、棕黑大眼、橙色腮红和橙色手脚，并转译成白底极简手绘角色。绒宝不是贴纸或站在角落里的装饰物，而是正在认真参与系统运转的荒诞工作者。
+默认视觉 IP 是“绒宝”：参考 `rongbao-illustrations/assets/rongbao.png` 的黄色圆形主体、青绿色叶耳、棕黑大眼、橙色腮红和橙色手脚，并转译成白底极简手绘角色。绒宝不是贴纸或站在角落里的装饰物，而是正在认真参与系统运转的荒诞工作者。
 
 一句话：**让 AI 不只是“配一张图”，而是把文章里的一个关键认知动作画出来。**
 
@@ -114,21 +114,21 @@ Rongbao Illustrations 是一个 Codex Skill，用来指导 AI Agent 为中文文
 克隆仓库：
 
 ```bash
-git clone https://github.com/yang0/ian-rongbao-illustrations.git
-cd ian-rongbao-illustrations
+git clone https://github.com/yang0/rongbao-illustrations.git
+cd rongbao-illustrations
 ```
 
 复制 skill 到 Codex skills 目录：
 
 ```bash
 mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
-cp -R ./ian-xiaohei-illustrations "${CODEX_HOME:-$HOME/.codex}/skills/"
+cp -R ./rongbao-illustrations "${CODEX_HOME:-$HOME/.codex}/skills/"
 ```
 
 安装后，在 Codex 里使用：
 
 ```text
-Use $ian-xiaohei-illustrations 为这篇中文文章设计并生成 5 张绒宝怪诞正文配图。
+Use $rongbao-illustrations 为这篇中文文章设计并生成 5 张绒宝怪诞正文配图。
 ```
 
 ---
@@ -138,7 +138,7 @@ Use $ian-xiaohei-illustrations 为这篇中文文章设计并生成 5 张绒宝�
 ### 只做配图规划
 
 ```text
-Use $ian-xiaohei-illustrations 先不要生图。
+Use $rongbao-illustrations 先不要生图。
 请分析下面这篇文章哪里值得配图，输出 5 张左右的 shot list。
 每张图写清楚：放在哪段后、主题、核心意思、结构类型、绒宝在做什么、建议中文标注词。
 
@@ -148,7 +148,7 @@ Use $ian-xiaohei-illustrations 先不要生图。
 ### 直接生成正文配图
 
 ```text
-Use $ian-xiaohei-illustrations 把下面这篇文章生成 4 张绒宝怪诞正文配图。
+Use $rongbao-illustrations 把下面这篇文章生成 4 张绒宝怪诞正文配图。
 要求：16:9 横版、纯白背景、黑色手绘线稿、少量红橙蓝中文手写批注。
 
 <粘贴文章>
@@ -157,14 +157,14 @@ Use $ian-xiaohei-illustrations 把下面这篇文章生成 4 张绒宝怪诞正�
 ### 为单个概念生成一张图
 
 ```text
-Use $ian-xiaohei-illustrations 为“信任不是喊出来的，而是一块证据一块证据铺过去”生成一张正文配图。
+Use $rongbao-illustrations 为“信任不是喊出来的，而是一块证据一块证据铺过去”生成一张正文配图。
 画面要怪诞但清爽，读取 `assets/rongbao.png` 作为绒宝角色参考，并让绒宝承担核心动作。
 ```
 
 ### 去掉图里的标题或错误文字
 
 ```text
-Use $ian-xiaohei-illustrations 帮我编辑这张图，去掉左上角的“流程图”标题，其他内容保持不变。
+Use $rongbao-illustrations 帮我编辑这张图，去掉左上角的“流程图”标题，其他内容保持不变。
 ```
 
 更多示例见 [examples/prompts.md](examples/prompts.md)。
@@ -202,7 +202,7 @@ Use $ian-xiaohei-illustrations 帮我编辑这张图，去掉左上角的“流�
 │   │   ├── 02-sort-by-purpose.png
 │   │   └── ...
 │   └── prompts.md
-└── ian-xiaohei-illustrations/
+└── rongbao-illustrations/
     ├── SKILL.md
     ├── agents/
     │   └── openai.yaml
@@ -220,12 +220,12 @@ Use $ian-xiaohei-illustrations 帮我编辑这张图，去掉左上角的“流�
 真正需要安装到 Codex 的是子目录：
 
 ```text
-ian-xiaohei-illustrations/
+rongbao-illustrations/
 ```
 
 根目录的 README、LICENSE、NOTICE 和 examples 是 GitHub 分享文档。
 
-为兼容已有安装和调用，Skill id、安装目录和 `$ian-xiaohei-illustrations` 调用方式保持不变；本仓库使用独立的 `ian-rongbao-illustrations` GitHub 地址，用户可见的角色名称和内容统一使用“绒宝”。
+为兼容已有安装和调用，Skill id、安装目录和 `$rongbao-illustrations` 调用方式保持不变；本仓库使用独立的 `rongbao-illustrations` GitHub 地址，用户可见的角色名称和内容统一使用“绒宝”。
 
 ---
 
@@ -244,7 +244,7 @@ ian-xiaohei-illustrations/
 
 本项目是独立维护的绒宝版本，基于上游项目进行改编，并保留原有 Skill id、安装目录和调用方式以兼容既有使用习惯。
 
-- 上游仓库：[helloianneo/ian-xiaohei-illustrations](https://github.com/helloianneo/ian-xiaohei-illustrations)
+- 上游仓库：[上游仓库](https://github.com/helloianneo/ian-xiaohei-illustrations)
 
 ---
 
