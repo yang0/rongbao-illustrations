@@ -84,7 +84,7 @@ Use $rongbao-illustrations 输出 5 个不同主题的绒宝正文配图效果�
 
 ## 跨设计 Skill 组合
 
-当请求同时包含“绒宝 / 这个IP / 带IP”和目标画幅时，`$rongbao-illustrations` 只负责意图路由与绒宝身份参考，目标设计 Skill 负责画幅、构图、材质、光线、文字和输出。组合请求会保留 `create|prompt` 语义，并将 Skill 内的 `assets/rongbao.png` 作为角色参考图传递；角色要与场景共享媒介和光线，贴片感只做一次角色融合迭代；正文配图仍走本 Skill 原生白底手绘模式。
+当请求同时包含“绒宝 / 这个IP / 带IP”和目标画幅时，`$rongbao-illustrations` 只负责意图路由与绒宝身份参考，目标设计 Skill 负责画幅、构图、材质、光线、文字和输出。组合请求会保留 `create|prompt` 语义，并将 Skill 内的 `assets/rongbao.png` 作为角色参考图传递；角色要与场景共享媒介和光线，身份色默认鲜亮，禁止综合色偏/统一降饱和/复古做旧；贴片感只做一次角色融合迭代；正文配图仍走本 Skill 原生白底手绘模式。
 
 ### 横版封面
 
