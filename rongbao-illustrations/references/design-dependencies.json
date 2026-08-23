@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "dependencies": [
+    {
+      "skill_id": "dongfang-cover-design",
+      "repo": "yang0/dongfang",
+      "path": "dongfang-cover-design",
+      "ref": "main",
+      "capabilities": [
+        "landscape-cover",
+        "portrait-poster",
+        "square-graphic"
+      ]
+    }
+  ]
+}

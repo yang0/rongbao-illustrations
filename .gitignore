@@ -10,5 +10,9 @@ dist/
 .idea/
 .vscode/
 
+# Python caches
+__pycache__/
+*.py[cod]
+
 # Logs
 *.log

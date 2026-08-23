@@ -1,6 +1,6 @@
 interface:
   display_name: "绒宝配图"
-  short_description: "为中文文章生成怪诞清爽、有绒宝IP的正文配图资产"
+  short_description: "为中文正文生成绒宝配图，并按需组合封面、竖版海报和方图设计 Skill"
   default_prompt: "Use $rongbao-illustrations to 为这篇中文文章设计并生成几张绒宝怪诞正文配图。"
 policy:
   allow_implicit_invocation: true

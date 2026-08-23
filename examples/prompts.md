@@ -81,3 +81,44 @@ Use $rongbao-illustrations 输出 5 个不同主题的绒宝正文配图效果�
 主题分别覆盖：信息过载、产品验证、内容复利、一人公司、信任建立。
 每张单独生成，不要拼成一张。
 ```
+
+## 跨设计 Skill 组合
+
+当请求同时包含“绒宝 / 这个IP / 带IP”和目标画幅时，`$rongbao-illustrations` 只负责意图路由与绒宝身份参考，目标设计 Skill 负责画幅、构图、材质、光线、文字和输出。组合请求会保留 `create|prompt` 语义，并将 Skill 内的 `assets/rongbao.png` 作为角色参考图传递；角色要与场景共享媒介和光线，贴片感只做一次角色融合迭代；正文配图仍走本 Skill 原生白底手绘模式。
+
+### 横版封面
+
+```text
+Use $rongbao-illustrations create 为这个绒宝 IP 做一张横版封面。
+主题：把复杂观点变成一个可记忆的视觉入口。能力：landscape-cover。
+```
+
+### 竖版海报
+
+```text
+Use $rongbao-illustrations create 为这个 IP 做一张竖版海报。
+主题：一条内容从想法到行动的转化。能力：portrait-poster。
+```
+
+### 方图
+
+```text
+Use $rongbao-illustrations prompt 为带绒宝 IP 的 1:1 方图设计一份提示词。
+主题：信任由证据逐步累积。能力：square-graphic。不要直接生图。
+```
+
+### 依赖缺失时
+
+首次使用组合能力时，先解析当前 Skill 根目录，再运行 `<skill-root>/scripts/doctor.py --json`；不要假设当前 cwd 是 Skill 目录。若目标 Skill 缺失，展示来源并只请求一次确认：
+
+```text
+来源：https://github.com/yang0/dongfang/tree/main/dongfang-cover-design
+参数：repo `yang0/dongfang` / path `dongfang-cover-design` / ref `main`
+是否使用系统 $skill-installer 从 GitHub 安装上述 repo/path/ref？
+```
+
+确认后由系统 `$skill-installer` 安装上述 repo/path/ref，下一轮 Codex 生命周期继续；拒绝则不改环境、不安装、不模仿目标能力。
+
+### 扩展注册
+
+新增目标设计 Skill 时，在 `rongbao-illustrations/references/design-dependencies.json` 增加 `skill_id`、`repo`、`path`、`ref` 和 `capabilities`，再增加对应的意图/画幅映射；不要复制目标 Skill 源码。

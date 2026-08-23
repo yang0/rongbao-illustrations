@@ -8,7 +8,7 @@
 
 ## 这个仓库是什么
 
-Rongbao Illustrations 是一个 Codex Skill，用来指导 AI Agent 为中文文章、帖子、博客、Notion 文档和方法论内容生成正文配图。
+Rongbao Illustrations 是一个 Codex Skill，用来指导 AI Agent 为中文文章、帖子、博客、Notion 文档和方法论内容生成正文配图，并在明确提出绒宝 IP 的封面、竖版海报或方图请求时，按需组合目标设计 Skill。
 
 它不是通用插画 prompt，也不是 PPT 信息图模板。它的核心目标是：先理解文章里的认知锚点，再把其中一个判断、流程、结构、状态或隐喻，变成一张有记忆点的 16:9 手绘解释图。
 
@@ -47,7 +47,15 @@ Rongbao Illustrations 是一个 Codex Skill，用来指导 AI Agent 为中文文
 - 每张图的主题、核心意思、结构类型、绒宝动作和中文标注建议
 - 最终 PNG 图片，保存到 workspace 的 `assets/<article-slug>-illustrations/`
 
-默认不输出：
+按需组合输出：
+
+- 横版封面（`landscape-cover`）
+- 竖版海报（`portrait-poster`）
+- 方图（`square-graphic`）
+
+组合输出的画幅、构图、材质、光线、文字、尺寸和保存方式由目标设计 Skill 决定。
+
+原生模式默认不输出：
 
 - PPTX / PDF / Keynote
 - SVG / HTML / Canvas 可编辑图
@@ -68,6 +76,45 @@ Rongbao Illustrations 是一个 Codex Skill，用来指导 AI Agent 为中文文
 - 绒宝必须参与核心动作，不能只是装饰
 - 生成时读取 Skill 包内的 `assets/rongbao.png` 作为角色参考；只保留身份锚点，不复制参考图的 3D 绒毛、米色背景、渐变或阴影。
 - 怪诞、有创意、清爽；友好灵动，但不幼儿化、不用可爱表情替代结构表达
+
+以上是正文配图原生模式的默认值。跨到其他设计 Skill 时，绒宝只提供黄色圆身、青绿叶耳、大棕眼、橙色腮红和橙色四肢等身份锚点；目标 Skill 决定媒介表现。
+
+组合图中角色要与场景共享媒介和光线；若出现参考图材质残留或贴片感，只针对角色做一次融合迭代，保持构图、标题、色彩和身份锚点不变。
+
+---
+
+## 跨设计 Skill 组合
+
+这是一个轻量 adapter 架构，不依赖 `agent-reach`，也不复制目标 Skill 文件：
+
+1. **意图路由**：识别“绒宝 / 这个IP / 带IP”或显式调用 `$rongbao-illustrations`，以及封面、竖版海报或方图画幅。
+2. **身份协议**：从本 Skill 的 `rongbao-illustrations/assets/rongbao.png` 提供绒宝身份参考。
+3. **目标设计 Skill**：根据注册表选择能力，负责画幅、构图、材质、光线、文字和输出。
+4. **交付**：`create` 透传生成请求，`prompt` 透传提示词/路由计划；不把正文白底手绘默认强加给目标 Skill。
+
+v1 注册表位于 [`rongbao-illustrations/references/design-dependencies.json`](rongbao-illustrations/references/design-dependencies.json)，当前登记：
+
+`dongfang-cover-design` → `yang0/dongfang` 的 `dongfang-cover-design`（ref `main`），能力为 `landscape-cover`、`portrait-poster`、`square-graphic`。
+
+### 按需安装依赖
+
+首次触发组合路由时，Skill 会先运行只读 doctor 并展示来源；依赖缺失时只请求一次确认，不会自动改环境：
+
+```text
+来源：https://github.com/yang0/dongfang/tree/main/dongfang-cover-design
+参数：repo `yang0/dongfang` / path `dongfang-cover-design` / ref `main`
+是否使用系统 $skill-installer 从 GitHub 安装上述 repo/path/ref？
+```
+
+确认后交给系统 `$skill-installer` 安装上述 repo/path/ref，提示用户该 Skill 将按 Codex 生命周期在下一轮可用；拒绝则不安装、不修改环境，也不模仿目标设计能力。新增设计依赖时，只需在注册表添加 `skill_id`、`repo`、`path`、`ref` 和 `capabilities`，再补充对应的意图映射，不要复制目标 Skill 源码。
+
+只读诊断命令：
+
+```bash
+python rongbao-illustrations/scripts/doctor.py --json
+```
+
+上面的命令从本仓库根目录执行；Skill 安装后，先解析当前 Skill 根目录，再运行 `<skill-root>/scripts/doctor.py --json`，不要假设当前 cwd 是 Skill 目录。
 
 ---
 
@@ -161,6 +208,29 @@ Use $rongbao-illustrations 为“信任不是喊出来的，而是一块证据�
 画面要怪诞但清爽，读取 `assets/rongbao.png` 作为绒宝角色参考，并让绒宝承担核心动作。
 ```
 
+### 组合生成横版封面
+
+```text
+Use $rongbao-illustrations create 为这个绒宝 IP 做一张横版封面。
+主题：把复杂观点变成一个可记忆的视觉入口。请把绒宝作为角色参考，画幅使用 landscape-cover。
+```
+
+显式调用 `$rongbao-illustrations` 与封面/海报/方图同时出现即可触发组合；单独调用 `$dongfang-cover-design` 且没有绒宝/IP 信号时，不会注入绒宝参考图。
+
+### 组合生成竖版海报
+
+```text
+Use $rongbao-illustrations create 为这个 IP 做一张竖版海报。
+主题：一条内容从想法到行动的转化。请保留绒宝身份锚点，画幅使用 portrait-poster。
+```
+
+### 组合生成方图
+
+```text
+Use $rongbao-illustrations prompt 为带绒宝 IP 的 1:1 方图设计一份提示词。
+主题：信任由证据逐步累积。请保留绒宝身份锚点，画幅使用 square-graphic，不要直接生图。
+```
+
 ### 去掉图里的标题或错误文字
 
 ```text
@@ -176,14 +246,15 @@ Use $rongbao-illustrations 帮我编辑这张图，去掉左上角的“流程�
 这个 skill 的流程是：
 
 1. 读取文章、Markdown、Notion 内容、截图或用户给的主题
-2. 提炼核心观点、认知转折、流程结构和适合视觉化的段落
-3. 先输出 shot list：每张图只选一个认知锚点
-4. 为每张图选择结构类型：Workflow、系统局部、前后对比、角色状态、概念隐喻、方法分层、地图路线或小漫画分镜
-5. 重新发明一个低科技、怪诞但成立的物理隐喻
-6. 让绒宝承担核心动作
-7. 每张图单独调用图像模型生成
-8. 按 QA checklist 检查：白底、留白、绒宝动作、中文标注、非 PPT 感、非旧案例复刻
-9. 保存最终 PNG，并报告用途和路径
+2. 判断是正文原生模式，还是“绒宝/IP + 封面/海报/方图”的组合模式
+3. 提炼核心观点、认知转折、流程结构和适合视觉化的段落
+4. 先输出 shot list：每张图只选一个认知锚点
+5. 为每张图选择结构类型：Workflow、系统局部、前后对比、角色状态、概念隐喻、方法分层、地图路线或小漫画分镜
+6. 重新发明一个低科技、怪诞但成立的物理隐喻
+7. 让绒宝承担核心动作，或将 `assets/rongbao.png` 作为角色参考传给目标设计 Skill
+8. 每张图单独调用图像模型生成；组合请求服从目标 Skill 的输出契约
+9. 按 QA checklist 检查原生正文图；组合图按目标 Skill 的检查标准验收
+10. 原生模式保存到 `assets/<article-slug>-illustrations/`；组合模式遵循目标设计 Skill 的输出路径、格式和交付契约
 
 ---
 
@@ -209,12 +280,17 @@ Use $rongbao-illustrations 帮我编辑这张图，去掉左上角的“流程�
     ├── assets/
     │   ├── rongbao.png
     │   └── examples/
-    └── references/
+    ├── references/
         ├── style-dna.md
         ├── rongbao-ip.md
+        ├── rongbao-identity.md
         ├── composition-patterns.md
         ├── prompt-template.md
-        └── qa-checklist.md
+        ├── qa-checklist.md
+        ├── design-routing.md
+        └── design-dependencies.json
+    └── scripts/
+        └── doctor.py
 ```
 
 真正需要安装到 Codex 的是子目录：
