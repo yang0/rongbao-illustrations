@@ -20,6 +20,11 @@ SKILL_DIR = SCRIPT_DIR.parent
 REPO_DIR = SKILL_DIR.parent
 REGISTRY_PATH = SKILL_DIR / "references" / "design-dependencies.json"
 
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from character_router import inspect_registry as inspect_character_registry
+
 
 def _unique_paths(paths: list[Path]) -> list[Path]:
     result: list[Path] = []
@@ -90,6 +95,7 @@ def _load_registry() -> dict[str, Any]:
 
 def diagnose() -> dict[str, Any]:
     registry = _load_registry()
+    characters = inspect_character_registry()
     dependencies: list[dict[str, Any]] = []
     for dependency in registry["dependencies"]:
         locations = []
@@ -122,13 +128,18 @@ def diagnose() -> dict[str, Any]:
         "registry": str(REGISTRY_PATH),
         "version": registry["version"],
         "dependencies": dependencies,
+        "characters": characters,
     }
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Read-only Rongbao dependency doctor")
     parser.add_argument("--json", action="store_true", dest="as_json", help="emit JSON")
-    parser.add_argument("--strict", action="store_true", help="exit 1 when a dependency is missing")
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="exit 1 when a dependency or character registration is invalid",
+    )
     args = parser.parse_args(argv)
 
     try:
@@ -143,8 +154,14 @@ def main(argv: list[str] | None = None) -> int:
         for dependency in report["dependencies"]:
             state = "available" if dependency["available"] else "missing"
             print(f"{dependency['skill_id']}: {state} ({', '.join(dependency['capabilities'])})")
+        character_state = "valid" if report["characters"]["valid"] else "invalid"
+        default_character = report["characters"].get("default_character")
+        print(f"characters: {character_state} (default={default_character})")
 
-    if args.strict and any(not dependency["available"] for dependency in report["dependencies"]):
+    if args.strict and (
+        any(not dependency["available"] for dependency in report["dependencies"])
+        or not report["characters"]["valid"]
+    ):
         return 1
     return 0
 

@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "default_character": "rongbao",
+  "characters": [
+    {
+      "id": "rongbao",
+      "display_name": "绒宝",
+      "aliases": [
+        "绒宝",
+        "rongbao"
+      ],
+      "asset": "assets/rongbao.png",
+      "identity_reference": "references/rongbao-identity.md"
+    },
+    {
+      "id": "yazai",
+      "display_name": "牙仔",
+      "aliases": [
+        "牙仔",
+        "yazai"
+      ],
+      "asset": "assets/yazai.png",
+      "identity_reference": "references/yazai-identity.md"
+    }
+  ]
+}

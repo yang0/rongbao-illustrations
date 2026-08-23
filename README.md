@@ -8,11 +8,11 @@
 
 ## 这个仓库是什么
 
-Rongbao Illustrations 是一个 Codex Skill，用来指导 AI Agent 为中文文章、帖子、博客、Notion 文档和方法论内容生成正文配图，并在明确提出绒宝 IP 的封面、竖版海报或方图请求时，按需组合目标设计 Skill。
+Rongbao Illustrations 是一个 Codex Skill，用来指导 AI Agent 为中文文章、帖子、博客、Notion 文档和方法论内容生成正文配图，并在明确提出绒宝或牙仔 IP 的封面、竖版海报或方图请求时，按需组合目标设计 Skill。
 
 它不是通用插画 prompt，也不是 PPT 信息图模板。它的核心目标是：先理解文章里的认知锚点，再把其中一个判断、流程、结构、状态或隐喻，变成一张有记忆点的 16:9 手绘解释图。
 
-默认视觉 IP 是“绒宝”：参考 `rongbao-illustrations/assets/rongbao.png` 的黄色圆形主体、青绿色叶耳、棕黑大眼、橙色腮红和橙色手脚，并转译成白底极简手绘角色。绒宝不是贴纸或站在角落里的装饰物，而是正在认真参与系统运转的荒诞工作者。
+默认视觉 IP 是“绒宝”：参考 `rongbao-illustrations/assets/rongbao.png` 的黄色圆形主体、青绿色叶耳、棕黑大眼、橙色腮红和橙色手脚，并转译成白底极简手绘角色。也可以按名称选择牙仔；每个角色都不是贴纸或站在角落里的装饰物，而是正在认真参与系统运转的荒诞工作者。
 
 一句话：**让 AI 不只是“配一张图”，而是把文章里的一个关键认知动作画出来。**
 
@@ -44,7 +44,7 @@ Rongbao Illustrations 是一个 Codex Skill，用来指导 AI Agent 为中文文
 
 - 16:9 横版正文配图
 - 一篇文章的 4-8 张 shot list
-- 每张图的主题、核心意思、结构类型、绒宝动作和中文标注建议
+- 每张图的主题、核心意思、结构类型、已选角色动作和中文标注建议
 - 最终 PNG 图片，保存到 workspace 的 `assets/<article-slug>-illustrations/`
 
 按需组合输出：
@@ -73,22 +73,33 @@ Rongbao Illustrations 是一个 Codex Skill，用来指导 AI Agent 为中文文
 - 大量留白，主体只占画面约 40%-60%
 - 少量红色、橙色、蓝色中文手写批注
 - 一张图只表达一个核心动作、结构、状态或隐喻
-- 绒宝必须参与核心动作，不能只是装饰
-- 生成时读取 Skill 包内的 `assets/rongbao.png` 作为角色参考；只保留身份锚点，不复制参考图的 3D 绒毛、米色背景、渐变或阴影。
+- 已选角色必须参与核心动作，不能只是装饰
+- 生成时读取角色注册表声明的参考图；只保留身份锚点，不复制参考图的 3D 绒毛、米色背景、渐变或阴影。
 - 怪诞、有创意、清爽；友好灵动，但不幼儿化、不用可爱表情替代结构表达
 
-以上是正文配图原生模式的默认值。跨到其他设计 Skill 时，绒宝只提供黄色圆身、青绿叶耳、大棕眼、橙色腮红和橙色四肢等身份锚点；目标 Skill 决定媒介表现。
+以上是正文配图原生模式的默认值。跨到其他设计 Skill 时，每个已选角色只提供自己的身份锚点；目标 Skill 决定媒介表现。
 
-组合图中角色要与场景共享媒介和光线，身份色默认保持鲜亮黄/青绿/橙；禁止综合色偏、统一降饱和或复古做旧伪装融合。若出现参考图材质残留或贴片感，只针对角色做一次融合迭代，保持构图、标题、配色和身份锚点不变。
+组合图中角色要与场景共享媒介和光线，绒宝身份色默认保持鲜亮黄/青绿/橙；禁止综合色偏、统一降饱和或复古做旧伪装融合。若出现参考图材质残留或贴片感，只针对角色做一次融合迭代，保持构图、标题、配色和所有身份锚点不变。
 
 ---
 
 ## 跨设计 Skill 组合
 
+### 按名称选择角色
+
+角色由 `rongbao-illustrations/references/character-registry.json` 注册表解析：
+
+- 不写角色名，或只写“这个IP / 该IP”：默认选择绒宝（`rongbao`）。
+- `绒宝` / `rongbao` 选择绒宝；`牙仔` / `yazai` 选择牙仔，英文别名不区分大小写。
+- 同一请求写“绒宝和牙仔”或同时出现两个别名：两者都入图，分别保留身份并共同参与核心动作。
+- 明确写出未注册的 IP 名称时不猜测替代角色，返回支持列表并要求改用支持名称。
+
+注册表还声明每个角色的 `asset` 和 `identity_reference`；原生正文沿用白底手绘规则，组合封面/海报/方图则把选中角色参考图传给目标设计 Skill。
+
 这是一个轻量 adapter 架构，不依赖 `agent-reach`，也不复制目标 Skill 文件：
 
-1. **意图路由**：识别“绒宝 / 这个IP / 带IP”或显式调用 `$rongbao-illustrations`，以及封面、竖版海报或方图画幅。
-2. **身份协议**：从本 Skill 的 `rongbao-illustrations/assets/rongbao.png` 提供绒宝身份参考。
+1. **意图路由**：识别“绒宝 / 牙仔 / 这个IP / 带IP”或显式调用 `$rongbao-illustrations`，以及封面、竖版海报或方图画幅。
+2. **身份协议**：从角色注册表提供每个选中角色的身份参考和素材。
 3. **目标设计 Skill**：根据注册表选择能力，负责画幅、构图、材质、光线、文字和输出。
 4. **交付**：`create` 透传生成请求，`prompt` 透传提示词/路由计划；不把正文白底手绘默认强加给目标 Skill。
 
@@ -175,7 +186,7 @@ cp -R ./rongbao-illustrations "${CODEX_HOME:-$HOME/.codex}/skills/"
 安装后，在 Codex 里使用：
 
 ```text
-Use $rongbao-illustrations 为这篇中文文章设计并生成 5 张绒宝怪诞正文配图。
+Use $rongbao-illustrations 为这篇中文文章设计并生成 5 张绒宝怪诞正文配图（未指定角色时默认绒宝）。
 ```
 
 ---
@@ -187,7 +198,7 @@ Use $rongbao-illustrations 为这篇中文文章设计并生成 5 张绒宝怪�
 ```text
 Use $rongbao-illustrations 先不要生图。
 请分析下面这篇文章哪里值得配图，输出 5 张左右的 shot list。
-每张图写清楚：放在哪段后、主题、核心意思、结构类型、绒宝在做什么、建议中文标注词。
+每张图写清楚：放在哪段后、主题、核心意思、结构类型、已选角色在做什么、建议中文标注词。
 
 <粘贴文章>
 ```
@@ -208,14 +219,26 @@ Use $rongbao-illustrations 为“信任不是喊出来的，而是一块证据�
 画面要怪诞但清爽，读取 `assets/rongbao.png` 作为绒宝角色参考，并让绒宝承担核心动作。
 ```
 
+### 指定牙仔或同时使用两个角色
+
+```text
+Use $rongbao-illustrations 为“证据如何累积”生成一张 16:9 正文配图。
+请使用牙仔（YAZAI）作为核心动作角色，保留黑白拟人猫身份锚点，不复制参考图材质。
+```
+
+```text
+Use $rongbao-illustrations 为这个主题生成一张正文配图。
+请让绒宝和牙仔一起完成核心动作，两个角色都要保持各自身份，不要把其中一个画成背景装饰。
+```
+
 ### 组合生成横版封面
 
 ```text
-Use $rongbao-illustrations create 为这个绒宝 IP 做一张横版封面。
-主题：把复杂观点变成一个可记忆的视觉入口。请把绒宝作为角色参考，画幅使用 landscape-cover。
+Use $rongbao-illustrations create 为牙仔（yazai）IP 做一张横版封面。
+主题：把复杂观点变成一个可记忆的视觉入口。请把牙仔作为角色参考，画幅使用 landscape-cover。
 ```
 
-显式调用 `$rongbao-illustrations` 与封面/海报/方图同时出现即可触发组合；单独调用 `$dongfang-cover-design` 且没有绒宝/IP 信号时，不会注入绒宝参考图。
+显式调用 `$rongbao-illustrations` 与封面/海报/方图同时出现即可触发组合；单独调用 `$dongfang-cover-design` 且没有角色/IP 信号时，不会注入任何角色参考图。
 
 ### 组合生成竖版海报
 
@@ -246,12 +269,12 @@ Use $rongbao-illustrations 帮我编辑这张图，去掉左上角的“流程�
 这个 skill 的流程是：
 
 1. 读取文章、Markdown、Notion 内容、截图或用户给的主题
-2. 判断是正文原生模式，还是“绒宝/IP + 封面/海报/方图”的组合模式
+2. 解析角色名称，再判断是正文原生模式，还是“角色/IP + 封面/海报/方图”的组合模式
 3. 提炼核心观点、认知转折、流程结构和适合视觉化的段落
 4. 先输出 shot list：每张图只选一个认知锚点
 5. 为每张图选择结构类型：Workflow、系统局部、前后对比、角色状态、概念隐喻、方法分层、地图路线或小漫画分镜
 6. 重新发明一个低科技、怪诞但成立的物理隐喻
-7. 让绒宝承担核心动作，或将 `assets/rongbao.png` 作为角色参考传给目标设计 Skill
+7. 让已选角色分别承担核心动作，或将注册表声明的角色参考图传给目标设计 Skill
 8. 每张图单独调用图像模型生成；组合请求服从目标 Skill 的输出契约
 9. 按 QA checklist 检查原生正文图；组合图按目标 Skill 的检查标准验收
 10. 原生模式保存到 `assets/<article-slug>-illustrations/`；组合模式遵循目标设计 Skill 的输出路径、格式和交付契约
@@ -266,7 +289,8 @@ Use $rongbao-illustrations 帮我编辑这张图，去掉左上角的“流程�
 ├── LICENSE
 ├── NOTICE.md
 ├── assets/
-│   └── rongbao.png
+│   ├── rongbao.png
+│   └── yazai.png
 ├── examples/
 │   ├── images/
 │   │   ├── 01-two-breakpoints.png
@@ -279,17 +303,23 @@ Use $rongbao-illustrations 帮我编辑这张图，去掉左上角的“流程�
     │   └── openai.yaml
     ├── assets/
     │   ├── rongbao.png
+    │   ├── yazai.png
     │   └── examples/
     ├── references/
         ├── style-dna.md
         ├── rongbao-ip.md
         ├── rongbao-identity.md
+        ├── yazai-identity.md
+        ├── character-routing.md
+        ├── character-registry.json
         ├── composition-patterns.md
         ├── prompt-template.md
         ├── qa-checklist.md
         ├── design-routing.md
         └── design-dependencies.json
     └── scripts/
+        ├── character_router.py
+        ├── test_character_router.py
         └── doctor.py
 ```
 
@@ -301,7 +331,7 @@ rongbao-illustrations/
 
 根目录的 README、LICENSE、NOTICE 和 examples 是 GitHub 分享文档。
 
-为兼容已有安装和调用，Skill id、安装目录和 `$rongbao-illustrations` 调用方式保持不变；本仓库使用独立的 `rongbao-illustrations` GitHub 地址，用户可见的角色名称和内容统一使用“绒宝”。
+为兼容已有安装和调用，Skill id、安装目录和 `$rongbao-illustrations` 调用方式保持不变；本仓库使用独立的 `rongbao-illustrations` GitHub 地址，角色默认是绒宝，也可按注册别名选择牙仔或同时选择两个角色。
 
 ---
 
@@ -309,8 +339,8 @@ rongbao-illustrations/
 
 - 图片里的中文文字越短越稳定。
 - 每张图只讲一个核心结构，不要把文章做成说明书。
-- 绒宝必须承担核心动作；如果去掉绒宝画面仍然完全成立，说明绒宝太装饰了。
-- 示例图只用于校准线条密度、留白、颜色克制和绒宝参与方式，不要复刻构图。
+- 已选角色必须承担核心动作；如果去掉角色画面仍然完全成立，说明角色太装饰了。
+- 示例图只用于校准线条密度、留白、颜色克制和默认角色参与方式，不要复刻构图。
 - AI 图像模型可能出现错字、幻觉标签、风格漂移或多余标题，生成后需要检查。
 - 如果中文错字严重，优先减少标注词并重生成。
 

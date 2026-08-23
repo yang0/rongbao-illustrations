@@ -1,14 +1,16 @@
 # 生图提示词模板
 
-以下模板只适用于本 Skill 的正文配图原生模式。组合到其他设计 Skill 时，不要套用本模板的白底手绘默认值；改为透传目标 Skill 契约，并附带 `assets/rongbao.png` 作为角色参考图。组合透传时补充：身份色默认保持鲜亮黄、鲜亮青绿和鲜亮橙，只有环境或用户明确要求时才局部变化；禁止综合色偏、统一降饱和或复古做旧伪装融合。
+以下模板只适用于本 Skill 的正文配图原生模式。先按 `character-routing.md` 解析角色；未指定时默认绒宝。组合到其他设计 Skill 时，不要套用本模板的白底手绘默认值；改为透传目标 Skill 契约，并附带角色注册表中每个选中角色的 `asset` 和 `identity_reference`。组合透传时补充：绒宝身份色默认保持鲜亮黄、鲜亮青绿和鲜亮橙，只有环境或用户明确要求时才局部变化；其他角色遵循各自身份协议；禁止综合色偏、统一降饱和或复古做旧伪装融合。
 
 组合媒介适配约束（附加到目标 Skill 提示词）：
 
 ```text
-Adapt the character's material, stroke, edge, grain, ambient light, and cast shadow to the target medium so the character and scene share one visual medium and lighting logic. Keep Rongbao's identity colors bright yellow, teal green, and orange by default; allow only local changes required by the environment or an explicit user request. Do not preserve studio 3D fur, a hard cutout edge, isolated highlights, global color grading, uniform desaturation, or faux vintage aging. If the character still looks pasted on, make one targeted character-media integration pass only; lock composition, title, palette, and identity anchors.
+Adapt each selected character's material, stroke, edge, grain, ambient light, and cast shadow to the target medium so every character and the scene share one visual medium and lighting logic. Keep Rongbao's identity colors bright yellow, teal green, and orange by default; allow only local changes required by the environment or an explicit user request, and follow the selected character's identity protocol for other colors and anchors. Do not preserve studio 3D fur, a hard cutout edge, isolated highlights, global color grading, uniform desaturation, or faux vintage aging. If a character still looks pasted on, make one targeted character-media integration pass only; lock composition, title, palette, and all selected identity anchors.
 ```
 
 每张图单独生成。根据正文内容替换变量，不要把多张图拼在一起。
+
+下面的原生模板以绒宝为默认示例。若角色解析结果是牙仔，替换角色段为 `yazai-identity.md` 的身份锚点；若同时选择两者，则保留两段身份描述，并让两者共同承担核心动作。
 
 ```text
 Generate one standalone 16:9 horizontal Chinese article illustration.
@@ -16,7 +18,7 @@ Generate one standalone 16:9 horizontal Chinese article illustration.
 Visual DNA:
 Pure white background. Minimalist black hand-drawn line art. Slightly wobbly pen lines. Lots of empty white space. Sparse red/orange/blue handwritten Chinese annotations. Clean absurd product-sketch feeling. No gradients, no shadows, no paper texture, no complex background, no commercial vector style, no PPT infographic look, no cute mascot poster, no children's illustration, no realistic UI.
 
-Recurring IP character required:
+Recurring selected IP character required:
 绒宝, a simplified hand-drawn character based on the reference image `assets/rongbao.png`: yellow round body, two teal leaf-like ears, large brown-black eyes with white sclera, orange cheeks, orange hands and feet. Preserve these identity anchors while translating the 3D furry reference into sparse black line art and restrained flat color. 绒宝 must perform the core conceptual action, not decorate the scene. Keep the expression focused and lively, not an over-cute mascot.
 
 Theme:
