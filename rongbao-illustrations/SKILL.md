@@ -143,6 +143,20 @@ $skill-installer install --repo JimLiu/baoyu-skills --path skills/baoyu-article-
 
 依赖缺失时，按 `references/design-routing.md` 展示 `yang0/dongfang`、`dongfang-cover-design`、`main` 的来源和能力并请求一次确认。确认后交给系统 `$skill-installer` 从 GitHub 安装 repo `yang0/dongfang`、path `dongfang-cover-design`、ref `main`，告知下一轮 Codex 生命周期继续；拒绝则立即结束该组合路径。
 
+### 可选 Guizang Social Card Skill
+
+注册表中的 `guizang-social-card-skill` 指向 [op7418/guizang-social-card-skill](https://github.com/op7418/guizang-social-card-skill)，固定使用仓库根目录、`main` ref 和同名安装目录。它提供小红书图文组图（3:4）、瑞士风卡片、电子杂志风卡片、公众号 21:9 + 1:1 封面对和 Live Photo 动态卡。它不随本 Skill 打包，不复制上游源码、模板或素材；上游许可证以其仓库声明的 AGPL-3.0 为准。
+
+显式写“归藏 / Guizang / 瑞士风社交卡 / 电子杂志社交卡 / 公众号封面对 / Live Photo”时，`design_router.py` 路由到对应能力。泛指“小红书图文 / 小红书图片”但未指定视觉系统时，路由器返回 `style_selection_required: true` 以及“归藏瑞士风、归藏电子杂志风、Baoyu 小红书图文”候选，不擅自抢占 Baoyu；明确写“宝玉 / Baoyu”仍路由 Baoyu。
+
+组合请求带有角色/IP信号时，先解析 `character_router.py`，把所有选中角色的原始 `asset_path` 和 `identity_reference_path` 按注册表顺序传给归藏；原图优先，多个角色分别保持身份并共同参与内容表达，不能融合成混合角色。无角色/IP信号时保持归藏上游原生行为，不注入牙仔、绒宝或阿龅。
+
+归藏缺失时只展示来源、能力和完整安装参数，并请求一次确认；确认后交给系统 `$skill-installer`：
+
+```text
+$skill-installer install --repo op7418/guizang-social-card-skill --path . --name guizang-social-card-skill --ref main
+```
+
 ### 5. 原生检查与迭代
 
 仅原生正文模式检查 `references/qa-checklist.md` 的白底手绘规则。如果出现以下问题，优先重生成或局部编辑：

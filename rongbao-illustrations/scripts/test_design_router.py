@@ -25,9 +25,13 @@ ROOT = Path(__file__).resolve().parents[2]
 SKILL_DIR = ROOT / "rongbao-illustrations"
 REGISTRY_PATH = SKILL_DIR / "references" / "design-dependencies.json"
 DEPENDENCIES = load_dependency_registry(REGISTRY_PATH)["dependencies"]
-DONGFANG = DEPENDENCIES[0]
-UPSTREAM = DEPENDENCIES[1]
-BAOYU_DEPENDENCIES = DEPENDENCIES[2:]
+DEPENDENCIES_BY_ID = {item["skill_id"]: item for item in DEPENDENCIES}
+DONGFANG = DEPENDENCIES_BY_ID["dongfang-cover-design"]
+UPSTREAM = DEPENDENCIES_BY_ID["ip-illustration-character-system"]
+BAOYU_DEPENDENCIES = [
+    item for item in DEPENDENCIES if str(item["skill_id"]).startswith("baoyu-")
+]
+GUIZANG = DEPENDENCIES_BY_ID["guizang-social-card-skill"]
 PNG_BYTES = (SKILL_DIR / "assets" / "rongbao.png").read_bytes()
 
 
@@ -184,6 +188,55 @@ def test_baoyu_dependency_probe() -> None:
         assert doctor.strict_dependency_failure(invalid_report["dependencies"]) is True
 
 
+def test_guizang_dependency_probe() -> None:
+    assert GUIZANG["repo"] == "op7418/guizang-social-card-skill"
+    assert GUIZANG["path"] == "."
+    assert GUIZANG["install_name"] == "guizang-social-card-skill"
+    assert GUIZANG["ref"] == "main"
+    assert GUIZANG["optional"] is True
+    assert GUIZANG["license"] == "AGPL-3.0"
+    assert GUIZANG["capabilities"] == [
+        "xhs-social-cards",
+        "swiss-social-card",
+        "editorial-social-card",
+        "wechat-cover-pair",
+        "live-photo-card",
+    ]
+    with tempfile.TemporaryDirectory() as temporary:
+        temp_root = Path(temporary)
+        codex_home = temp_root / "codex"
+        installed = codex_home / "skills" / GUIZANG["install_name"]
+        write_skill_fixture(installed, GUIZANG["skill_id"])
+        report = inspect_dependency(
+            GUIZANG,
+            skill_root=SKILL_DIR,
+            environment={"CODEX_HOME": str(codex_home)},
+            home=temp_root,
+        )
+        assert report["status"] == "installed"
+        assert report["root_path"] is True
+        assert report["source"] == "https://github.com/op7418/guizang-social-card-skill/tree/main"
+        assert report["license"] == "AGPL-3.0"
+        assert report["install"]["args"] == [
+            "--repo",
+            "op7418/guizang-social-card-skill",
+            "--path",
+            ".",
+            "--name",
+            "guizang-social-card-skill",
+            "--ref",
+            "main",
+        ]
+        missing = inspect_dependency(
+            GUIZANG,
+            skill_root=SKILL_DIR,
+            environment={"CODEX_HOME": str(temp_root / "missing-codex")},
+            home=temp_root,
+        )
+        assert missing["status"] == "missing"
+        assert missing["optional"] is True
+
+
 def test_dependency_sibling_candidates() -> None:
     with tempfile.TemporaryDirectory() as temporary:
         temp_root = Path(temporary)
@@ -201,6 +254,68 @@ def test_dependency_sibling_candidates() -> None:
         )
         assert (ROOT.parent / "ip_illustration_for_yourself").resolve() in root_dependency_candidates
         assert (ROOT.parent / "dongfang" / "dongfang-cover-design").resolve() in nested_dependency_candidates
+
+
+def test_guizang_routing_and_style_selection() -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+        guizang_root = Path(temporary) / "guizang"
+        write_skill_fixture(guizang_root, GUIZANG["skill_id"])
+
+        swiss = route_request(
+            "用归藏瑞士风做一套小红书图文",
+            dependency_root=guizang_root,
+        )
+        assert swiss["mode"] == "direct-target"
+        assert swiss["target_skill_id"] == GUIZANG["skill_id"]
+        assert swiss["target_capability"] == "swiss-social-card"
+        assert swiss["inject_character_references"] is False
+        assert swiss["characters"] == []
+
+        editorial = route_request(
+            "Use guizang-social-card-skill create 电子杂志风社交卡",
+            dependency_root=guizang_root,
+        )
+        assert editorial["target_capability"] == "editorial-social-card"
+        assert editorial["mode"] == "direct-target"
+
+        wechat = route_request(
+            "用归藏做公众号封面对（21:9 + 1:1）",
+            dependency_root=guizang_root,
+        )
+        assert wechat["target_capability"] == "wechat-cover-pair"
+
+        live_photo = route_request(
+            "用归藏做一张 Live Photo 卡片",
+            dependency_root=guizang_root,
+        )
+        assert live_photo["target_capability"] == "live-photo-card"
+
+        injected = route_request(
+            "Use $rongbao-illustrations create 用牙仔做归藏瑞士风小红书图文",
+            dependency_root=guizang_root,
+        )
+        assert injected["mode"] == "upstream"
+        assert injected["target_skill_id"] == GUIZANG["skill_id"]
+        assert injected["target_capability"] == "swiss-social-card"
+        assert injected["characters"] == ["yazai"]
+        assert [Path(path).name for path in injected["referenced_image_paths"]] == ["yazai.png"]
+        assert injected["reference_inputs"][0]["identity_reference_path"].endswith(
+            "yazai-identity.md"
+        )
+
+        generic = route_request("做一套小红书图文")
+        assert generic["mode"] == "selection-required"
+        assert generic["style_selection_required"] is True
+        assert generic["generation_ready"] is False
+        assert {item["target_capability"] for item in generic["style_candidates"]} == {
+            "swiss-social-card",
+            "editorial-social-card",
+            "xhs-images",
+        }
+
+        explicit_baoyu = route_request("宝玉做一套小红书图文")
+        assert explicit_baoyu["target_skill_id"] == "baoyu-xhs-images"
+        assert explicit_baoyu["style_selection_required"] is False
 
 
 def test_routing_and_input_order() -> None:
@@ -457,7 +572,9 @@ def test_model_gate() -> None:
 
 test_dependency_probe()
 test_baoyu_dependency_probe()
+test_guizang_dependency_probe()
 test_dependency_sibling_candidates()
+test_guizang_routing_and_style_selection()
 test_routing_and_input_order()
 test_model_gate()
 print("design router tests passed")

@@ -246,6 +246,8 @@ def inspect_dependency(
         "root_path": is_root_path(str(dependency["path"])),
         "ref": dependency["ref"],
         "capabilities": dependency["capabilities"],
+        "license": dependency.get("license"),
+        "maintainer": dependency.get("maintainer"),
         "reference_policy": dependency.get("reference_policy", "direct-character"),
         "requires_gpt_image_2": bool(dependency.get("requires_gpt_image_2", False)),
         "optional": bool(dependency.get("optional", False)),

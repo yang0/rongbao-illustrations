@@ -12,6 +12,8 @@
 | `$rongbao-illustrations`/角色/IP 信号 + 萌粒、角色锚点、转面、3:4 信息图或 3:4 贴纸页 | 组合路由到可选 `ip-illustration-character-system` |
 | 只有萌粒、角色锚点、转面、3:4 信息图或 3:4 贴纸页，没有角色/IP 信号 | 生成 `ip-illustration-character-system` 的 `direct-target` 计划，不注入 Rongbao 图片 |
 | 显式调用 `baoyu-*`，或“Baoyu/宝玉 + 文章配图、封面、信息图、知识漫画、漫画、小红书图片、图片卡片、幻灯片/slide deck” | 优先路由到对应 Baoyu Skill；有 Rongbao IP 信号时注入已选角色，否则为 `direct-target` |
+| 显式调用 `guizang-social-card-skill`、写“归藏”、瑞士风社交卡、电子杂志社交卡、公众号封面对或 Live Photo | 路由到 `guizang-social-card-skill` 的对应能力；有 Rongbao IP 信号时注入已选角色，否则为 `direct-target` |
+| 泛指小红书图文/图片但未选择视觉系统 | 返回 `style_selection_required: true`，候选为归藏瑞士风、归藏电子杂志风和 Baoyu `xhs-images`；不自动抢占任一目标 |
 | 只有知识漫画、漫画、小红书图片、图片卡片或幻灯片/slide deck，没有 Rongbao IP 信号 | 路由到对应 Baoyu Skill 的 `direct-target`，不注入 Rongbao 图片 |
 | 只有 `$dongfang-cover-design`，但没有绒宝/牙仔/阿龅/IP 身份信号 | 仅执行用户明确点名的目标 Skill，不注入任何角色参考图，不由本 adapter 组合 |
 | 只有 `$ip-illustration-character-system`，但没有绒宝/牙仔/阿龅/IP 身份信号 | 允许用户直接使用上游 Skill，但不注入任何角色参考图 |
@@ -34,6 +36,11 @@
 - 文章配图、正文插图、article illustration → `baoyu-article-illustrator`（仅显式 Baoyu/宝玉 或 Skill id）
 - 知识漫画、漫画、comic → `baoyu-comic`
 - 小红书图片、图片卡片、xhs images → `baoyu-xhs-images`
+- 归藏小红书图文组图 → `guizang-social-card-skill` / `xhs-social-cards`
+- 归藏瑞士风社交卡 → `guizang-social-card-skill` / `swiss-social-card`
+- 归藏电子杂志社交卡 → `guizang-social-card-skill` / `editorial-social-card`
+- 归藏公众号 21:9 + 1:1 封面对 → `guizang-social-card-skill` / `wechat-cover-pair`
+- 归藏 Live Photo 动态卡 → `guizang-social-card-skill` / `live-photo-card`
 - 幻灯片、slide deck、演示文稿 → `baoyu-slide-deck`
 - Baoyu 封面、Baoyu 信息图 → `baoyu-cover-image` / `baoyu-infographic`
 
@@ -46,6 +53,7 @@
 - adapter 不吞掉、改写或替换 `create` / `prompt`；只在组合调用中附加角色注册表为每个选中角色声明的包内相对 `asset` 和 `identity_reference`。实际生图/改图时，先用 `character_router.py --json` 取得当前 Skill 根目录解析出的 `character_inputs[*].asset_path`，逐张 `view_image` 后，按注册表顺序全部放入目标设计 Skill 的 `referenced_image_paths`，并在提示词中标出 Image 与显示名映射；不能只靠文字描述或写死开发机绝对路径。
 - 需要上游能力时，运行 `scripts/design_router.py --json "<request>"`；它会保留 `create|prompt` 语义，输出 `target_skill_id`、`target_capability`、`dependency.status`、`reference_inputs` 和同序 `referenced_image_paths`。能力词或显式上游名称即使没有角色/IP信号，也会输出 `direct-target` 计划；只有有角色/IP信号时才进入带角色输入的 `upstream` 模式。实际生图/改图还必须对每条 `reference_inputs` 调用 `view_image`，再把同一顺序的路径传给目标工具。
 - Baoyu 的 `reference_policy` 决定原图输入策略：`direct-character` 用于文章配图、封面和信息图；`comic-character-sheet` 保证注册原图优先、衍生角色表仅作 secondary anchor；`deck-identity` 允许角色只出现在内容合适的页面；`xhs-chain-anchor` 将所有选中角色原图作为第一张生成的 direct references，并将第一张生成成品作为后续链式 anchor。Baoyu 不使用 Everett 的 GPT Image 2 门禁。
+- 归藏使用 `social-card-character`：所有选中角色的原始 `asset_path` 位于全部输入最前，并保留对应 `identity_reference_path`；风格、版式、平台画幅和 Live Photo 处理服从归藏上游。角色应出现在封面及至少一个承担内容表达的页面，纯截图或数据页可不强制放入角色。
 
 ## 组合执行
 
@@ -125,6 +133,25 @@ $skill-installer install --repo JimLiu/baoyu-skills --path skills/baoyu-article-
 ```
 
 如果只需要一个能力，只传对应的一个 `--path`；不要自行下载、复制或修改安装目录。用户直接调用 Baoyu 且没有 Rongbao IP 信号时保持上游原生行为，不附加角色参考图。
+
+归藏可选依赖缺失时只展示一次来源、能力和安装参数，并请求一次确认：
+
+```text
+缺少组合依赖：guizang-social-card-skill
+来源：https://github.com/op7418/guizang-social-card-skill
+参数：repo `op7418/guizang-social-card-skill` / path `.` / name `guizang-social-card-skill` / ref `main`
+能力：xhs-social-cards / swiss-social-card / editorial-social-card / wechat-cover-pair / live-photo-card
+许可证：AGPL-3.0（以上游仓库声明为准）
+是否使用系统 $skill-installer 从 GitHub 安装上述依赖？
+```
+
+确认后交给系统 `$skill-installer`：
+
+```text
+$skill-installer install --repo op7418/guizang-social-card-skill --path . --name guizang-social-card-skill --ref main
+```
+
+不要复制上游源码、模板或素材。用户拒绝时不安装、不修改环境，也不模拟归藏的版式能力。
 
 ## 扩展注册
 

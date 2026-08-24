@@ -112,6 +112,24 @@
       "capabilities": [
         "xhs-images"
       ]
+    },
+    {
+      "skill_id": "guizang-social-card-skill",
+      "repo": "op7418/guizang-social-card-skill",
+      "path": ".",
+      "install_name": "guizang-social-card-skill",
+      "ref": "main",
+      "optional": true,
+      "license": "AGPL-3.0",
+      "maintainer": "op7418",
+      "reference_policy": "social-card-character",
+      "capabilities": [
+        "xhs-social-cards",
+        "swiss-social-card",
+        "editorial-social-card",
+        "wechat-cover-pair",
+        "live-photo-card"
+      ]
     }
   ]
 }

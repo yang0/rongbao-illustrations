@@ -2,7 +2,7 @@
 
 > 把中文文章里的判断、流程、状态和隐喻，变成一张张白底、手绘、怪诞但清爽的正文配图。
 >
-> 16:9 横版 | 绒宝 / 牙仔 / 阿龅 IP | 纯白手绘 | 少量红橙蓝中文批注 | Codex Skill
+> 16:9 正文配图 + 3:4/21:9/1:1 社交卡片 | 绒宝 / 牙仔 / 阿龅 IP | Codex Skill
 
 ---
 
@@ -54,6 +54,7 @@ Rongbao Illustrations 是一个 Codex Skill，用来指导 AI Agent 为中文文
 - 方图（`square-graphic`）
 - 可选萌粒小插图、角色锚点、转面图、3:4 信息图和 3:4 贴纸页（需用户确认安装上游 Skill）
 - 可选 Baoyu 文章配图、知识漫画、封面、信息图、幻灯片和小红书图片（需用户确认安装对应上游 Skill）
+- 可选 Guizang Social Card 小红书图文组图、瑞士风卡片、电子杂志风卡片、公众号 21:9 + 1:1 封面对和 Live Photo（需用户确认安装对应上游 Skill）
 
 组合输出的画幅、构图、材质、光线、文字、尺寸和保存方式由目标设计 Skill 决定。
 
@@ -115,7 +116,7 @@ python -X utf8 rongbao-illustrations/scripts/character_router.py --json "用牙�
 1. **意图路由**：识别“绒宝 / 牙仔 / 阿龅 / 这个IP / 带IP”或显式调用 `$rongbao-illustrations`，以及封面、竖版海报、方图和 Baoyu 独有能力。
 2. **身份协议**：从角色注册表提供每个选中角色的身份参考和素材。
 3. **目标设计 Skill**：根据注册表选择能力，负责画幅、构图、材质、光线、文字和输出。
-4. **上游能力**：`scripts/design_router.py` 将普通封面/海报/方图交给 Dongfang，将 3:4 信息图/萌粒/贴纸交给 Everett；显式 Baoyu 或 Baoyu/宝玉 + 能力优先选择对应 Baoyu Skill。所有目标有角色/IP信号时注入已选角色，没有信号时生成 `direct-target` 计划但不注入角色；普通文章配图保持原生。
+4. **上游能力**：`scripts/design_router.py` 将普通封面/海报/方图交给 Dongfang，将 3:4 信息图/萌粒/贴纸交给 Everett；显式 Baoyu 或 Baoyu/宝玉 + 能力优先选择对应 Baoyu Skill；显式归藏、瑞士风、电子杂志风、公众号封面对或 Live Photo 路由到 Guizang Social Card。所有目标有角色/IP信号时注入已选角色，没有信号时生成 `direct-target` 计划但不注入角色；普通文章配图保持原生。
 5. **交付**：`create` 透传生成请求，`prompt` 透传提示词/路由计划；不把正文白底手绘默认强加给目标 Skill。
 
 v1 注册表位于 [`rongbao-illustrations/references/design-dependencies.json`](rongbao-illustrations/references/design-dependencies.json)，当前登记：
@@ -125,6 +126,10 @@ v1 注册表位于 [`rongbao-illustrations/references/design-dependencies.json`]
 可选上游 `ip-illustration-character-system` → [`EverettFish/ip_illustration_for_yourself`](https://github.com/EverettFish/ip_illustration_for_yourself)（root `path: "."`，ref `main`），能力为 `character-anchor`、`turnaround-sheet`、`mini-article-illustration`、`article-infographic-3x4`、`sticker-sheet-3x4`。它不随本仓库打包，也不会复制上游代码或图片。
 
 可选 Baoyu 上游 → [`JimLiu/baoyu-skills`](https://github.com/JimLiu/baoyu-skills)（ref `main`，仓库声明 MIT），注册 `baoyu-article-illustrator`、`baoyu-comic`、`baoyu-cover-image`、`baoyu-infographic`、`baoyu-slide-deck` 和 `baoyu-xhs-images`。它们不随本仓库打包，也不会复制上游代码或图片。
+
+可选 Guizang Social Card 上游 → [`op7418/guizang-social-card-skill`](https://github.com/op7418/guizang-social-card-skill)（root `path: "."`，ref `main`，上游声明 AGPL-3.0），能力为 `xhs-social-cards`、`swiss-social-card`、`editorial-social-card`、`wechat-cover-pair` 和 `live-photo-card`。它不随本仓库打包，也不会复制上游源码、模板或素材。
+
+泛指“小红书图文 / 小红书图片”但没有指定视觉系统时，路由器输出 `style_selection_required: true`，候选为归藏瑞士风、归藏电子杂志风和 Baoyu `xhs-images`；明确写“归藏 / Guizang”或对应风格才进入 Guizang。
 
 ### 按需安装依赖
 
@@ -162,6 +167,24 @@ $skill-installer install --repo JimLiu/baoyu-skills --path skills/baoyu-article-
 ```
 
 Baoyu 的文章配图/封面/信息图使用选中 IP 原图作为 direct references；漫画、slide deck 分别遵循角色表和内容页面策略；xhs-images 将所有选中角色原图按顺序传给第 1 张生成，只有第 1 张生成成品才作为第 2 张及后续图片的 chain anchor。Baoyu 不套用 Everett 的 GPT Image 2 门禁；实际生图仍必须先 `view_image`，再按路由器返回顺序传入 `referenced_image_paths`。
+
+Guizang 缺失时只请求一次确认：
+
+```text
+来源：https://github.com/op7418/guizang-social-card-skill
+参数：repo `op7418/guizang-social-card-skill` / path `.` / name `guizang-social-card-skill` / ref `main`
+能力：xhs-social-cards / swiss-social-card / editorial-social-card / wechat-cover-pair / live-photo-card
+许可证：AGPL-3.0（以上游仓库声明为准）
+是否使用系统 $skill-installer 安装上述依赖？
+```
+
+确认后使用：
+
+```text
+$skill-installer install --repo op7418/guizang-social-card-skill --path . --name guizang-social-card-skill --ref main
+```
+
+带角色/IP信号时，路由器会将所有选中角色的原始 `asset_path` 和 `identity_reference_path` 置于输入最前；角色身份优先，归藏负责版式、主题、平台画幅和 Live Photo 工作流。
 
 只读诊断命令：
 
@@ -241,6 +264,20 @@ Use $rongbao-illustrations create 让绒宝、牙仔和阿龅共同完成一张 
 | 小红书图片 / `xhs-images` | 3:4 | `baoyu-xhs-images` | 是，确认安装 Baoyu | `Use $rongbao-illustrations create 用绒宝和牙仔做一组 Baoyu 小红书图片。` | ![Baoyu 小红书图片](rongbao-illustrations/assets/showcase/baoyu-xhs-images.png) |
 
 `weichen-x-growth-sop` 的漫画页和封面，以及上面 `assets/showcase/` 中的预览，都是本项目生成输出，放在这里作为能力的本地视觉示例，不代表复制了 Baoyu、Dongfang 或 Everett 上游文件。实际调用可选依赖时仍需按上文提示确认安装；没有安装时，路由会展示来源和安装参数，不会把“已挂载”误写成“已打包”。
+
+#### Guizang Social Card
+
+Guizang 是独立的社交卡片排版 Skill，Rongbao 只负责角色选择与身份参考图注入，版式、主题色、平台尺寸和 Live Photo 流程由上游负责。它不修改 Rongbao 的原生白底手绘规则。
+
+| 能力 | 画幅 | 目标 Skill | 需安装依赖 | 复制调用示例 |
+| --- | --- | --- | --- | --- |
+| 小红书图文组图 / `xhs-social-cards` | 3:4 | `guizang-social-card-skill` | 是，确认安装 Guizang | `Use $rongbao-illustrations create 用牙仔做一套归藏小红书图文。` |
+| 瑞士风社交卡 / `swiss-social-card` | 3:4 | `guizang-social-card-skill` | 是，确认安装 Guizang | `Use $rongbao-illustrations create 用阿龅做一套瑞士风社交卡。` |
+| 电子杂志风社交卡 / `editorial-social-card` | 3:4 | `guizang-social-card-skill` | 是，确认安装 Guizang | `Use $rongbao-illustrations create 用绒宝做一套电子杂志风小红书图文。` |
+| 公众号封面对 / `wechat-cover-pair` | 21:9 + 1:1 | `guizang-social-card-skill` | 是，确认安装 Guizang | `Use $rongbao-illustrations create 用牙仔做公众号 21:9 + 1:1 封面对。` |
+| Live Photo / `live-photo-card` | 3:4 / 视频卡 | `guizang-social-card-skill` | 是，确认安装 Guizang | `Use $rongbao-illustrations create 用牙仔把这段视频做成小红书 Live Photo。` |
+
+如果只说“做一套小红书图文”而没有指定视觉系统，路由器会先返回三个候选：归藏瑞士风、归藏电子杂志风、Baoyu 小红书图文；选择后才会生成。显式写“归藏”或 `guizang-social-card-skill` 时不会触发这个询问。
 
 ---
 
@@ -384,6 +421,21 @@ Use $rongbao-illustrations prompt 为带绒宝 IP 的 1:1 方图设计一份提�
 ```
 
 多角色方图示例：`用绒宝和牙仔设计一张方图`。
+
+### 使用 Guizang 生成社交卡片
+
+```text
+Use $rongbao-illustrations create 用牙仔做一套瑞士风小红书图文。
+主题：高价值 AI 工具和工作流分享。
+请把牙仔原图作为身份参考，角色出现在封面和至少一张内容页；其余页面服从 Guizang 的版式和 3:4 规范。
+```
+
+```text
+Use $rongbao-illustrations create 用绒宝和阿龅做一组电子杂志风小红书图文。
+两个角色分别读取自己的原图和身份协议，不要合成混合角色。
+```
+
+如果 Guizang 尚未安装，Rongbao 会展示上游来源、AGPL-3.0 许可证和安装参数；确认后才调用系统安装器，不会把 Guizang 源码复制进本仓库。
 
 ### 去掉图里的标题或错误文字
 

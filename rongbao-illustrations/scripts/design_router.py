@@ -21,6 +21,7 @@ SKILL_DIR = SCRIPT_DIR.parent
 REGISTRY_PATH = SKILL_DIR / "references" / "design-dependencies.json"
 UPSTREAM_SKILL_ID = "ip-illustration-character-system"
 DONGFANG_SKILL_ID = "dongfang-cover-design"
+GUIZANG_SKILL_ID = "guizang-social-card-skill"
 BAOYU_SKILL_IDS = {
     "baoyu-article-illustrator",
     "baoyu-comic",
@@ -37,7 +38,7 @@ BAOYU_DEFAULT_CAPABILITIES = {
     "baoyu-slide-deck": "slide-deck",
     "baoyu-xhs-images": "xhs-images",
 }
-BAOYU_UNIQUE_CAPABILITIES = {"comic", "xhs-images", "slide-deck"}
+BAOYU_UNIQUE_CAPABILITIES = {"comic", "slide-deck"}
 GPT_IMAGE_2_LINKS = {
     "model": "https://developers.openai.com/api/docs/models/gpt-image-2",
     "guide": "https://developers.openai.com/api/docs/guides/image-generation",
@@ -99,7 +100,17 @@ BAOYU_CAPABILITY_ALIASES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ),
     (
         "xhs-images",
-        ("小红书图片", "小红书配图", "图片卡片", "图片卡", "xhs images", "xhs-images"),
+        (
+            "小红书图片",
+            "小红书配图",
+            "小红书图文",
+            "小红书组图",
+            "小红书轮播图文",
+            "图片卡片",
+            "图片卡",
+            "xhs images",
+            "xhs-images",
+        ),
     ),
     (
         "slide-deck",
@@ -139,6 +150,80 @@ DONGFANG_CAPABILITY_ALIASES: tuple[tuple[str, tuple[str, ...]], ...] = (
         "landscape-cover",
         ("横版封面", "横屏封面", "封面 KV", "封面", "landscape cover", "cover"),
     ),
+)
+
+GUIZANG_CAPABILITY_ALIASES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    (
+        "swiss-social-card",
+        (
+            "瑞士风社交卡",
+            "归藏瑞士风",
+            "瑞士国际主义",
+            "瑞士风",
+            "swiss social card",
+            "swiss style",
+            "swiss",
+        ),
+    ),
+    (
+        "editorial-social-card",
+        (
+            "电子杂志社交卡",
+            "归藏电子杂志风",
+            "电子杂志风",
+            "杂志风社交卡",
+            "editorial social card",
+            "editorial style",
+            "editorial",
+        ),
+    ),
+    (
+        "wechat-cover-pair",
+        (
+            "公众号封面对",
+            "公众号封面一对",
+            "公众号头图分享卡",
+            "微信封面对",
+            "21:9+1:1",
+            "21:9 + 1:1",
+            "wechat cover pair",
+            "wechat cover",
+        ),
+    ),
+    (
+        "live-photo-card",
+        (
+            "live photo 卡片",
+            "live photo",
+            "livephoto",
+            "动态卡",
+            "实况卡",
+            "实况拼图",
+            "live photo card",
+        ),
+    ),
+    (
+        "xhs-social-cards",
+        (
+            "小红书图文组图",
+            "小红书轮播图文",
+            "小红书卡片组",
+            "rednote carousel",
+            "xiaohongshu carousel",
+            "xhs social cards",
+        ),
+    ),
+)
+
+GUIZANG_GENERIC_XHS_ALIASES: tuple[str, ...] = (
+    "小红书图文",
+    "小红书图片",
+    "小红书配图",
+    "小红书组图",
+    "小红书轮播",
+    "rednote",
+    "xiaohongshu",
+    "xhs",
 )
 
 
@@ -204,6 +289,19 @@ def _target_skill_signal(request: str, dependency: Mapping[str, Any]) -> bool:
     return any(_contains_ascii_token(alias, text) for alias in aliases)
 
 
+def _guizang_signal(request: str) -> bool:
+    """Detect an explicit Guizang/social-card request without stealing Baoyu."""
+
+    text = request.casefold()
+    if _contains_ascii_token("guizang-social-card-skill", text):
+        return True
+    if _contains_ascii_token("op7418/guizang-social-card-skill", text):
+        return True
+    if any(alias.casefold() in text for alias in ("归藏", "social card", "social cards")):
+        return True
+    return detect_guizang_capability(request) is not None
+
+
 def _baoyu_signal(request: str) -> bool:
     text = request.casefold()
     return bool(
@@ -238,11 +336,30 @@ def detect_dongfang_capability(request: str) -> str | None:
     return _detect_alias_capability(request, DONGFANG_CAPABILITY_ALIASES)
 
 
+def detect_guizang_capability(request: str) -> str | None:
+    """Detect a Guizang Social Card capability from explicit style/platform terms."""
+
+    return _detect_alias_capability(request, GUIZANG_CAPABILITY_ALIASES)
+
+
+def _is_generic_xhs_request(request: str) -> bool:
+    """Return True for a generic Xiaohongshu request without a style choice."""
+
+    text = request.casefold()
+    has_xhs = any(
+        (alias.casefold() in text if not alias.isascii() else _contains_ascii_token(alias, text))
+        for alias in GUIZANG_GENERIC_XHS_ALIASES
+    )
+    return has_xhs and detect_guizang_capability(request) is None
+
+
 def _explicit_dependency(request: str, dependencies: Mapping[str, Mapping[str, Any]]) -> Mapping[str, Any] | None:
     """Return an explicitly named registered dependency in registry order."""
 
     for dependency in dependencies.values():
         if _target_skill_signal(request, dependency):
+            return dependency
+        if dependency.get("skill_id") == GUIZANG_SKILL_ID and _guizang_signal(request):
             return dependency
     return None
 
@@ -255,6 +372,8 @@ def _capability_for_dependency(request: str, dependency: Mapping[str, Any]) -> s
         return detect_dongfang_capability(request) or str(dependency["capabilities"][0])
     if skill_id == UPSTREAM_SKILL_ID:
         return detect_capability(request) or None
+    if skill_id == GUIZANG_SKILL_ID:
+        return detect_guizang_capability(request) or "xhs-social-cards"
     return str(dependency["capabilities"][0]) if dependency.get("capabilities") else None
 
 
@@ -267,6 +386,12 @@ def _select_target(
     explicit = _explicit_dependency(request, dependencies)
     if explicit is not None:
         return explicit, _capability_for_dependency(request, explicit)
+
+    # A generic Xiaohongshu request is intentionally left unresolved until the
+    # caller chooses a visual system.  This keeps Guizang from silently
+    # taking over Baoyu's xhs-images route.
+    if _is_generic_xhs_request(request) and not _baoyu_signal(request):
+        return None, None
 
     baoyu_capability = detect_baoyu_capability(request)
     if baoyu_capability is not None:
@@ -517,7 +642,11 @@ def assemble_reference_inputs(
                 role=role,
                 relative_path=str(character["asset"]),
                 identity_reference_only=True,
-                extra=strategy_metadata,
+                extra={
+                    **strategy_metadata,
+                    "character_id": character["id"],
+                    "identity_reference_path": character.get("identity_reference_path"),
+                },
             )
         )
 
@@ -622,8 +751,21 @@ def route_request(
     dependency, capability = _select_target(request, dependencies)
     operation = detect_operation(request)
     adapter_signal = bool(signal["adapter_signal"])
+    style_selection_required = (
+        dependency is None
+        and _is_generic_xhs_request(request)
+        and not _baoyu_signal(request)
+    )
 
-    if dependency is not None:
+    if style_selection_required:
+        mode = "selection-required"
+        target_skill = None
+        inject = True
+        reason = (
+            "generic Xiaohongshu request needs a style choice; choose Guizang Swiss, "
+            "Guizang Editorial, or Baoyu xhs-images"
+        )
+    elif dependency is not None:
         target_skill = str(dependency["skill_id"])
         if adapter_signal:
             mode = "upstream"
@@ -676,6 +818,28 @@ def route_request(
         "mode": mode,
         "target_skill_id": target_skill,
         "target_capability": capability,
+        "style_selection_required": style_selection_required,
+        "style_candidates": (
+            [
+                {
+                    "label": "归藏瑞士风",
+                    "target_skill_id": GUIZANG_SKILL_ID,
+                    "target_capability": "swiss-social-card",
+                },
+                {
+                    "label": "归藏电子杂志风",
+                    "target_skill_id": GUIZANG_SKILL_ID,
+                    "target_capability": "editorial-social-card",
+                },
+                {
+                    "label": "Baoyu 小红书图文",
+                    "target_skill_id": "baoyu-xhs-images",
+                    "target_capability": "xhs-images",
+                },
+            ]
+            if style_selection_required
+            else []
+        ),
         "inject_character_references": inject,
         "reason": reason,
         "signals": signal,
@@ -703,6 +867,8 @@ def route_request(
         or target_skill is None
     )
     route["generation_ready"] = bool(
+        not style_selection_required
+        and (
         target_skill is None
         or (
             model_ready
@@ -711,6 +877,7 @@ def route_request(
                 not inject
                 or all(record["exists"] for record in references["inputs"])
             )
+        )
         )
     )
     return route
