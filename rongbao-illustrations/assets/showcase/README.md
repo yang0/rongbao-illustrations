@@ -51,6 +51,7 @@ These additional previews are project-generated derivatives. They demonstrate th
 | Guizang | Swiss International | `guizang-social-card-skill` | 3:4 | [`guizang-swiss-social-card.png`](guizang-swiss-social-card.png) |
 | Guizang | Editorial Magazine | `guizang-social-card-skill` | 3:4 | [`guizang-editorial-social-card.png`](guizang-editorial-social-card.png) |
 | Dongfang | 彩色水墨 Editorial Cover | `dongfang-cover-design` | 16:9 | [`dongfang-color-ink-cover.png`](dongfang-color-ink-cover.png) |
+| Dongfang | Non-Chinese high-density color poster | `dongfang-cover-design` | 3:4 | [`dongfang-non-chinese-color-poster.png`](dongfang-non-chinese-color-poster.png) |
 | Everett | 彩色角色锚点 | `ip-illustration-character-system` | 3:4 | [`everett-color-character-anchor.png`](everett-color-character-anchor.png) |
 | Baoyu | 彩色知识漫画 | `baoyu-comic` | 4:3 | [`baoyu-color-comic.png`](baoyu-color-comic.png) |
 

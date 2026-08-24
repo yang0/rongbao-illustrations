@@ -234,6 +234,14 @@
       "image_source": "project-generated style variant; not a Dongfang asset"
     },
     {
+      "group": "Dongfang",
+      "style": "Non-Chinese high-density color poster",
+      "aspect_ratio": "3:4",
+      "target_skill": "dongfang-cover-design",
+      "image_path": "rongbao-illustrations/assets/showcase/dongfang-non-chinese-color-poster.png",
+      "image_source": "project-generated style variant; not a Dongfang asset"
+    },
+    {
       "group": "Everett",
       "style": "彩色角色锚点",
       "aspect_ratio": "3:4",

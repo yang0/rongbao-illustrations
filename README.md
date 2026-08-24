@@ -295,6 +295,10 @@ Guizang 是独立的社交卡片排版 Skill，Rongbao 只负责角色选择与�
 
 这些图是本项目基于各 IP 原图生成的衍生示例，不是上游仓库的官方素材；实际调用时仍由目标 Skill 决定最终媒介和版式。
 
+Dongfang 也可以走非中式的高密度国际海报语言，例如下面这张荧光黄、洋红、青色和紫色的实验室主题海报：
+
+![Dongfang 非中式高彩色海报](rongbao-illustrations/assets/showcase/dongfang-non-chinese-color-poster.png)
+
 ---
 
 ## 示例效果
