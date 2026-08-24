@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -24,112 +23,65 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from character_router import inspect_registry as inspect_character_registry
+from dependency_utils import (
+    dependency_candidate_paths,
+    frontmatter_name,
+    inspect_dependency,
+    load_dependency_registry,
+)
 
 
-def _unique_paths(paths: list[Path]) -> list[Path]:
-    result: list[Path] = []
-    seen: set[str] = set()
-    for path in paths:
-        resolved = path.expanduser().resolve(strict=False)
-        key = os.path.normcase(str(resolved))
-        if key not in seen:
-            seen.add(key)
-            result.append(resolved)
-    return result
-
-
+# Keep these wrappers for callers that used the original read-only helpers.
 def _candidate_paths(dependency: dict[str, Any]) -> list[Path]:
-    skill_id = str(dependency["skill_id"])
-    skill_path = Path(str(dependency["path"]))
-    repo = str(dependency["repo"])
-    repo_name = repo.rsplit("/", 1)[-1]
-
-    candidates: list[Path] = []
-    codex_home = os.environ.get("CODEX_HOME")
-    if codex_home:
-        candidates.append(Path(codex_home) / "skills" / skill_id)
-    candidates.append(Path.home() / ".codex" / "skills" / skill_id)
-    candidates.append(Path.home() / ".agents" / "skills" / skill_id)
-    candidates.append(REPO_DIR.parent / repo_name / skill_path)
-    return _unique_paths(candidates)
+    return dependency_candidate_paths(dependency, skill_root=SKILL_DIR)
 
 
 def _frontmatter_name(skill_file: Path) -> str | None:
-    """Read only the YAML frontmatter name without requiring PyYAML."""
-
-    try:
-        lines = skill_file.read_text(encoding="utf-8-sig").splitlines()
-    except (OSError, UnicodeError):
-        return None
-    if not lines or lines[0].strip() != "---":
-        return None
-    for line in lines[1:]:
-        if line.strip() == "---":
-            break
-        key, separator, value = line.partition(":")
-        if separator and key.strip() == "name":
-            return value.strip().strip("'\"")
-    return None
+    return frontmatter_name(skill_file)
 
 
 def _load_registry() -> dict[str, Any]:
-    with REGISTRY_PATH.open("r", encoding="utf-8") as handle:
-        registry = json.load(handle)
-    if not isinstance(registry, dict):
-        raise ValueError("registry root must be an object")
-    if registry.get("version") != 1:
-        raise ValueError("registry version must be 1")
-    dependencies = registry.get("dependencies")
-    if not isinstance(dependencies, list):
-        raise ValueError("registry dependencies must be a list")
-    for dependency in dependencies:
-        required = {"skill_id", "repo", "path", "ref", "capabilities"}
-        if not isinstance(dependency, dict) or not required.issubset(dependency):
-            raise ValueError("each dependency needs skill_id, repo, path, ref, capabilities")
-        if not isinstance(dependency["ref"], str) or not dependency["ref"].strip():
-            raise ValueError("dependency ref must be a non-empty string")
-        if not isinstance(dependency["capabilities"], list):
-            raise ValueError("dependency capabilities must be a list")
-    return registry
+    return load_dependency_registry(REGISTRY_PATH)
 
 
-def diagnose() -> dict[str, Any]:
-    registry = _load_registry()
+def diagnose(
+    *,
+    registry: dict[str, Any] | None = None,
+    skill_dir: Path = SKILL_DIR,
+    environment: dict[str, str] | None = None,
+    home: Path | None = None,
+) -> dict[str, Any]:
+    registry = _load_registry() if registry is None else registry
     characters = inspect_character_registry()
-    dependencies: list[dict[str, Any]] = []
-    for dependency in registry["dependencies"]:
-        locations = []
-        for candidate in _candidate_paths(dependency):
-            skill_file = candidate / "SKILL.md"
-            skill_name = _frontmatter_name(skill_file) if skill_file.is_file() else None
-            locations.append(
-                {
-                    "path": str(candidate),
-                    "exists": candidate.is_dir(),
-                    "skill_md": skill_file.is_file(),
-                    "name": skill_name,
-                    "name_match": skill_name == dependency["skill_id"],
-                }
-            )
-        available = any(location["skill_md"] and location["name_match"] for location in locations)
-        dependencies.append(
-            {
-                "skill_id": dependency["skill_id"],
-                "repo": dependency["repo"],
-                "path": dependency["path"],
-                "ref": dependency["ref"],
-                "capabilities": dependency["capabilities"],
-                "source": f"https://github.com/{dependency['repo']}/tree/{dependency['ref']}/{dependency['path']}",
-                "available": available,
-                "locations": locations,
-            }
+    dependencies = [
+        inspect_dependency(
+            dependency,
+            skill_root=skill_dir,
+            environment=environment,
+            home=home,
         )
+        for dependency in registry["dependencies"]
+    ]
     return {
         "registry": str(REGISTRY_PATH),
         "version": registry["version"],
         "dependencies": dependencies,
         "characters": characters,
     }
+
+
+def strict_dependency_failure(dependencies: list[dict[str, Any]]) -> bool:
+    """Required missing and every invalid dependency block strict mode.
+
+    Optional dependencies may be missing by design, but a present dependency
+    with a wrong Skill id or malformed installation remains an error.
+    """
+
+    return any(
+        dependency["status"] == "invalid"
+        or (dependency["status"] == "missing" and not dependency["optional"])
+        for dependency in dependencies
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -152,15 +104,15 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True))
     else:
         for dependency in report["dependencies"]:
-            state = "available" if dependency["available"] else "missing"
-            print(f"{dependency['skill_id']}: {state} ({', '.join(dependency['capabilities'])})")
+            state = dependency["status"]
+            optional = ", optional" if dependency["optional"] else ""
+            print(f"{dependency['skill_id']}: {state}{optional} ({', '.join(dependency['capabilities'])})")
         character_state = "valid" if report["characters"]["valid"] else "invalid"
         default_character = report["characters"].get("default_character")
         print(f"characters: {character_state} (default={default_character})")
 
     if args.strict and (
-        any(not dependency["available"] for dependency in report["dependencies"])
-        or not report["characters"]["valid"]
+        strict_dependency_failure(report["dependencies"]) or not report["characters"]["valid"]
     ):
         return 1
     return 0

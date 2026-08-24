@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "default_character": "rongbao",
+  "default_character": "yazai",
   "characters": [
     {
       "id": "rongbao",
@@ -21,6 +21,16 @@
       ],
       "asset": "assets/yazai.png",
       "identity_reference": "references/yazai-identity.md"
+    },
+    {
+      "id": "abao",
+      "display_name": "阿龅",
+      "aliases": [
+        "阿龅",
+        "abao"
+      ],
+      "asset": "assets/abao.png",
+      "identity_reference": "references/abao-identity.md"
     }
   ]
 }

@@ -1,0 +1,750 @@
+#!/usr/bin/env python3
+"""Deterministic routing and reference-input assembly for design Skills.
+
+This adapter never installs or copies a dependency. It chooses the native
+Rongbao path or one registered design dependency, then emits a deterministic
+ordered prompt package for the caller.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+from typing import Any, Mapping
+
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+SKILL_DIR = SCRIPT_DIR.parent
+REGISTRY_PATH = SKILL_DIR / "references" / "design-dependencies.json"
+UPSTREAM_SKILL_ID = "ip-illustration-character-system"
+DONGFANG_SKILL_ID = "dongfang-cover-design"
+BAOYU_SKILL_IDS = {
+    "baoyu-article-illustrator",
+    "baoyu-comic",
+    "baoyu-cover-image",
+    "baoyu-infographic",
+    "baoyu-slide-deck",
+    "baoyu-xhs-images",
+}
+BAOYU_DEFAULT_CAPABILITIES = {
+    "baoyu-article-illustrator": "article-illustration",
+    "baoyu-comic": "comic",
+    "baoyu-cover-image": "cover-image",
+    "baoyu-infographic": "infographic",
+    "baoyu-slide-deck": "slide-deck",
+    "baoyu-xhs-images": "xhs-images",
+}
+BAOYU_UNIQUE_CAPABILITIES = {"comic", "xhs-images", "slide-deck"}
+GPT_IMAGE_2_LINKS = {
+    "model": "https://developers.openai.com/api/docs/models/gpt-image-2",
+    "guide": "https://developers.openai.com/api/docs/guides/image-generation",
+}
+
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from character_router import (  # noqa: E402
+    _alias_matches,
+    _read_registry,
+    resolve_character_inputs,
+)
+from dependency_utils import (  # noqa: E402
+    DependencyRegistryError,
+    frontmatter_name,
+    inspect_dependency,
+    load_dependency_registry,
+)
+
+
+CAPABILITY_ALIASES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    (
+        "article-infographic-3x4",
+        (
+            "3:4",
+            "3：4",
+            "3x4",
+            "3×4",
+            "信息图",
+            "知识卡",
+            "知识卡片",
+            "article infographic",
+            "infographic",
+        ),
+    ),
+    (
+        "sticker-sheet-3x4",
+        ("贴纸", "贴纸页", "异形贴纸", "模切贴纸", "sticker sheet", "sticker-sheet"),
+    ),
+    (
+        "turnaround-sheet",
+        ("转面图", "转面设定", "角色转面", "turnaround", "turnaround sheet"),
+    ),
+    (
+        "character-anchor",
+        ("角色锚点", "角色形象", "人物锚点", "character anchor", "character-anchor"),
+    ),
+    (
+        "mini-article-illustration",
+        ("萌粒", "mini pen-doodle", "mini illustration", "mini article illustration"),
+    ),
+)
+
+BAOYU_CAPABILITY_ALIASES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    (
+        "comic",
+        ("知识漫画", "漫画", "知识漫画", "comic", "comics", "knowledge comic"),
+    ),
+    (
+        "xhs-images",
+        ("小红书图片", "小红书配图", "图片卡片", "图片卡", "xhs images", "xhs-images"),
+    ),
+    (
+        "slide-deck",
+        ("幻灯片", "幻灯片组", "演示文稿", "slide deck", "slides", "presentation"),
+    ),
+    (
+        "article-illustration",
+        (
+            "文章配图",
+            "正文配图",
+            "文章插图",
+            "article illustration",
+            "article illustrator",
+            "baoyu article illustrator",
+        ),
+    ),
+    (
+        "cover-image",
+        ("封面", "封面图", "cover image", "article cover"),
+    ),
+    (
+        "infographic",
+        ("信息图", "知识信息图", "infographic", "baoyu infographic"),
+    ),
+)
+
+DONGFANG_CAPABILITY_ALIASES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    (
+        "portrait-poster",
+        ("竖版海报", "竖屏海报", "竖版封面", "portrait poster", "portrait cover"),
+    ),
+    (
+        "square-graphic",
+        ("方图", "正方形", "正方形传播图", "square graphic", "1:1 graphic"),
+    ),
+    (
+        "landscape-cover",
+        ("横版封面", "横屏封面", "封面 KV", "封面", "landscape cover", "cover"),
+    ),
+)
+
+
+class DesignRoutingError(ValueError):
+    """Raised when the dependency registry cannot support routing."""
+
+
+def _contains_ascii_token(alias: str, text: str) -> bool:
+    pattern = rf"(?<![A-Za-z0-9_-]){re.escape(alias.casefold())}(?![A-Za-z0-9_-])"
+    return re.search(pattern, text.casefold()) is not None
+
+
+def _load_target_dependency() -> dict[str, Any]:
+    return _load_dependencies_by_id()[UPSTREAM_SKILL_ID]
+
+
+def _load_dependencies_by_id() -> dict[str, dict[str, Any]]:
+    registry = load_dependency_registry(REGISTRY_PATH)
+    return {str(dependency["skill_id"]): dependency for dependency in registry["dependencies"]}
+
+
+def _registered_character_signal(request: str) -> dict[str, Any]:
+    registry = _read_registry()
+    text = request.casefold()
+    aliases: list[str] = []
+    for character in registry.get("characters", []):
+        for alias in character.get("aliases", []):
+            if isinstance(alias, str) and (
+                _alias_matches(alias, text) if alias else False
+            ):
+                aliases.append(alias)
+    ip_signal = bool(
+        re.search(
+            r"(?:这个|该|我的|本|自有|指定)\s*ip(?:形象|角色|素材|参考)?|"
+            r"ip\s*(?:形象|角色|素材|参考)|带\s*ip",
+            text,
+            flags=re.IGNORECASE,
+        )
+    )
+    adapter_signal = bool(
+        aliases
+        or ip_signal
+        or "$rongbao-illustrations" in text
+        or "rongbao-illustrations" in text
+    )
+    return {
+        "registered_aliases": list(dict.fromkeys(aliases)),
+        "ip_signal": ip_signal,
+        "rongbao_skill_signal": "$rongbao-illustrations" in text
+        or "rongbao-illustrations" in text,
+        "adapter_signal": adapter_signal,
+    }
+
+
+def _target_skill_signal(request: str, dependency: Mapping[str, Any]) -> bool:
+    text = request.casefold()
+    aliases = {
+        str(dependency["skill_id"]).casefold(),
+        str(dependency.get("install_name", dependency["skill_id"])).casefold(),
+    }
+    if dependency.get("skill_id") == UPSTREAM_SKILL_ID:
+        aliases.add("ip_illustration_for_yourself")
+    return any(_contains_ascii_token(alias, text) for alias in aliases)
+
+
+def _baoyu_signal(request: str) -> bool:
+    text = request.casefold()
+    return bool(
+        re.search(r"宝玉|\bbaoyu\b|baoyu-skills|jimliu/baoyu-skills", text, flags=re.IGNORECASE)
+    )
+
+
+def _detect_alias_capability(
+    request: str,
+    aliases: tuple[tuple[str, tuple[str, ...]], ...],
+) -> str | None:
+    text = request.casefold()
+    for capability, capability_aliases in aliases:
+        for alias in capability_aliases:
+            if alias.isascii():
+                if _contains_ascii_token(alias, text):
+                    return capability
+            elif alias.casefold() in text:
+                return capability
+    return None
+
+
+def detect_baoyu_capability(request: str) -> str | None:
+    """Detect a Baoyu-specific capability without changing native defaults."""
+
+    return _detect_alias_capability(request, BAOYU_CAPABILITY_ALIASES)
+
+
+def detect_dongfang_capability(request: str) -> str | None:
+    """Detect the existing Dongfang cover/poster/square capability."""
+
+    return _detect_alias_capability(request, DONGFANG_CAPABILITY_ALIASES)
+
+
+def _explicit_dependency(request: str, dependencies: Mapping[str, Mapping[str, Any]]) -> Mapping[str, Any] | None:
+    """Return an explicitly named registered dependency in registry order."""
+
+    for dependency in dependencies.values():
+        if _target_skill_signal(request, dependency):
+            return dependency
+    return None
+
+
+def _capability_for_dependency(request: str, dependency: Mapping[str, Any]) -> str | None:
+    skill_id = str(dependency["skill_id"])
+    if skill_id in BAOYU_SKILL_IDS:
+        return detect_baoyu_capability(request) or BAOYU_DEFAULT_CAPABILITIES.get(skill_id)
+    if skill_id == DONGFANG_SKILL_ID:
+        return detect_dongfang_capability(request) or str(dependency["capabilities"][0])
+    if skill_id == UPSTREAM_SKILL_ID:
+        return detect_capability(request) or None
+    return str(dependency["capabilities"][0]) if dependency.get("capabilities") else None
+
+
+def _select_target(
+    request: str,
+    dependencies: Mapping[str, Mapping[str, Any]],
+) -> tuple[Mapping[str, Any] | None, str | None]:
+    """Choose one target while preserving registered Everett and Dongfang routes."""
+
+    explicit = _explicit_dependency(request, dependencies)
+    if explicit is not None:
+        return explicit, _capability_for_dependency(request, explicit)
+
+    baoyu_capability = detect_baoyu_capability(request)
+    if baoyu_capability is not None:
+        baoyu_skill = next(
+            (
+                dependency
+                for dependency in dependencies.values()
+                if BAOYU_DEFAULT_CAPABILITIES.get(str(dependency["skill_id"])) == baoyu_capability
+            ),
+            None,
+        )
+        if baoyu_skill is not None and (_baoyu_signal(request) or baoyu_capability in BAOYU_UNIQUE_CAPABILITIES):
+            return baoyu_skill, baoyu_capability
+
+    everett_capability = detect_capability(request)
+    if everett_capability is not None:
+        return dependencies.get(UPSTREAM_SKILL_ID), everett_capability
+
+    dongfang_capability = detect_dongfang_capability(request)
+    if dongfang_capability is not None:
+        return dependencies.get(DONGFANG_SKILL_ID), dongfang_capability
+    return None, None
+
+
+def detect_capability(request: str) -> str | None:
+    """Detect the most specific upstream capability in deterministic order."""
+
+    text = request.casefold()
+    for capability, aliases in CAPABILITY_ALIASES:
+        for alias in aliases:
+            if alias.isascii():
+                if _contains_ascii_token(alias, text):
+                    return capability
+            elif alias.casefold() in text:
+                return capability
+    return None
+
+
+def detect_operation(request: str) -> str:
+    """Preserve ``create`` versus ``prompt`` semantics for downstream Skills."""
+
+    text = request.casefold()
+    if re.search(r"先不要生图|不要生图|只要提示词|只做提示词|路由计划|shot\s*list|\bprompt\b", text):
+        return "prompt"
+    if re.search(r"\bcreate\b|生成|生图|设计|做一张|做一套|改图|编辑图片|画一张", text):
+        return "create"
+    return "unspecified"
+
+
+def model_gate(
+    model: str | None = None,
+    *,
+    explicitly_confirmed: bool = False,
+    request: str = "",
+) -> dict[str, Any]:
+    """Allow direct generation only for an explicitly confirmed GPT Image 2."""
+
+    normalized_model = (model or "").casefold().replace("_", "-").replace(" ", "-")
+    recognized = normalized_model in {"gpt-image-2", "gptimage-2", "gptimage2"}
+    phrase_confirmed = bool(re.search(r"gpt[\s_-]*image[\s_-]*2", request.casefold()))
+    confirmed = explicitly_confirmed or phrase_confirmed
+    direct_allowed = recognized and confirmed
+    return {
+        "requested_model": model,
+        "recognized_gpt_image_2": recognized,
+        "explicitly_confirmed": confirmed,
+        "direct_generation_allowed": direct_allowed,
+        "delivery": "direct-generation" if direct_allowed else "prompt-package",
+        "required_model": "gpt-image-2",
+        "official_docs": GPT_IMAGE_2_LINKS,
+        "reason": (
+            "GPT Image 2 is explicitly confirmed"
+            if direct_allowed
+            else "generic or unknown image tools are not accepted; prepare a prompt package"
+        ),
+    }
+
+
+def _model_gate_for_dependency(
+    dependency: Mapping[str, Any] | None,
+    model: str | None,
+    *,
+    explicitly_confirmed: bool,
+    request: str,
+) -> dict[str, Any]:
+    """Apply the GPT Image 2 gate only to the Everett upstream."""
+
+    if dependency is not None and dependency.get("requires_gpt_image_2", False):
+        return model_gate(model, explicitly_confirmed=explicitly_confirmed, request=request)
+    return {
+        "requested_model": model,
+        "recognized_gpt_image_2": None,
+        "explicitly_confirmed": explicitly_confirmed,
+        "direct_generation_allowed": True,
+        "delivery": "direct-generation",
+        "required_model": None,
+        "official_docs": {},
+        "applies": False,
+        "reason": "target dependency has no GPT Image 2 gate",
+    }
+
+
+def _dependency_report(
+    dependency: Mapping[str, Any],
+    *,
+    dependency_root: Path | None,
+    environment: Mapping[str, str] | None,
+    home: Path | None,
+) -> dict[str, Any]:
+    from dependency_utils import dependency_install_info, dependency_source_url, is_root_path
+
+    report = inspect_dependency(
+        dependency,
+        skill_root=SKILL_DIR,
+        environment=environment,
+        home=home,
+    )
+    if dependency_root is None:
+        return report
+    root = dependency_root.expanduser().resolve(strict=False)
+    skill_name = frontmatter_name(root / "SKILL.md") if (root / "SKILL.md").is_file() else None
+    valid = root.is_dir() and skill_name == dependency["skill_id"]
+    report["installed"] = valid
+    report["available"] = valid
+    report["status"] = "installed" if valid else ("invalid" if root.exists() else "missing")
+    report["installed_location"] = str(root) if valid else None
+    report["locations"] = [
+        {
+            "path": str(root),
+            "exists": root.is_dir(),
+            "skill_md": (root / "SKILL.md").is_file(),
+            "name": skill_name,
+            "name_match": skill_name == dependency["skill_id"],
+            "valid": valid,
+        }
+    ]
+    report["source"] = dependency_source_url(dependency)
+    report["install"] = dependency_install_info(dependency)
+    report["root_path"] = is_root_path(str(dependency["path"]))
+    return report
+
+
+def _reference_record(
+    path: Path,
+    *,
+    label: str,
+    role: str,
+    relative_path: str,
+    identity_reference_only: bool = False,
+    extra: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    resolved = path.expanduser().resolve(strict=False)
+    record = {
+        "path": str(resolved),
+        "relative_path": relative_path,
+        "label": label,
+        "role": role,
+        "identity_reference_only": identity_reference_only,
+        "exists": resolved.is_file(),
+        "view_before_attach": True,
+    }
+    if extra:
+        record.update(extra)
+    return record
+
+
+def _character_reference_contract(
+    dependency: Mapping[str, Any] | None,
+    index: int,
+) -> tuple[str, str, dict[str, Any]]:
+    """Return role, label suffix, and strategy metadata for one IP input."""
+
+    policy = str((dependency or {}).get("reference_policy", "direct-character"))
+    if policy == "comic-character-sheet":
+        return (
+            "character_setting",
+            "character setting reference only",
+            {
+                "character_reference_stage": "primary",
+                "derived_sheet_role": "secondary_anchor_only",
+                "original_asset_overrides_derived_sheet": True,
+            },
+        )
+    if policy == "deck-identity":
+        return (
+            "deck_identity",
+            "deck identity reference only",
+            {
+                "deck_identity_reference": True,
+                "appearance_scope": "content-appropriate pages only",
+            },
+        )
+    if policy == "xhs-chain-anchor":
+        return (
+            "character_identity",
+            "identity reference only",
+            {
+                # Every selected original is attached to the first generated
+                # image.  The first output, not any original asset, becomes
+                # the chain anchor for later cards.
+                "direct_reference_for": "first_generated_output",
+                "first_output_direct_reference": True,
+                "chain_anchor": False,
+                "chain_anchor_source": None,
+                "chain_anchor_order": None,
+            },
+        )
+    return (
+        "character_identity",
+        "identity reference only",
+        {"character_reference_stage": "primary"},
+    )
+
+
+def _reference_contract(dependency: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Describe how a selected dependency consumes the resolved inputs."""
+
+    policy = str((dependency or {}).get("reference_policy", "native"))
+    if policy == "xhs-chain-anchor":
+        return {
+            "policy": policy,
+            "original_asset_direct_reference_for": "first_generated_output",
+            "first_generated_output_becomes_chain_anchor_for": "subsequent_outputs",
+            "all_selected_original_assets_required_for_first_output": True,
+            "original_assets_must_not_be_chain_anchors": True,
+        }
+    return {"policy": policy}
+
+
+def assemble_reference_inputs(
+    route: Mapping[str, Any],
+    *,
+    dependency_root: Path | None = None,
+) -> dict[str, Any]:
+    """Build stable ordered image inputs without loading or copying files."""
+
+    records: list[dict[str, Any]] = []
+    omissions: list[dict[str, str]] = []
+    dependency = route.get("dependency") or {}
+    character_dependency = dependency if route.get("mode") == "upstream" else None
+    for character in route.get("character_inputs", []):
+        index = len(records) + 1
+        role, label_suffix, strategy_metadata = _character_reference_contract(character_dependency, index)
+        records.append(
+            _reference_record(
+                Path(str(character["asset_path"])),
+                label=f"Image {index} — {character['display_name']} {label_suffix}",
+                role=role,
+                relative_path=str(character["asset"]),
+                identity_reference_only=True,
+                extra=strategy_metadata,
+            )
+        )
+
+    if route.get("mode") != "upstream" or not route.get("inject_character_references"):
+        return {
+            "inputs": records,
+            "referenced_image_paths": [record["path"] for record in records],
+            "omissions": omissions,
+            "view_each_before_attach": True,
+            "prompt_only_no_view_image": True,
+        }
+
+    reference_inputs = dependency.get("reference_inputs", {})
+    style_paths = list(reference_inputs.get("style", []))
+    selected_ids = {character["id"] for character in route.get("character_inputs", [])}
+    style_limit = 2 if "yazai" in selected_ids else len(style_paths)
+    root_value = dependency_root or dependency.get("installed_location")
+    if not root_value:
+        for relative_path in style_paths[:style_limit]:
+            omissions.append(
+                {
+                    "relative_path": str(relative_path),
+                    "reason": "optional dependency is not installed",
+                }
+            )
+        if "yazai" in selected_ids and len(style_paths) > 2:
+            omissions.append(
+                {
+                    "relative_path": str(style_paths[2]),
+                    "reason": "style_ref_03 is omitted by the identity-risk rule when Yazai is selected",
+                }
+            )
+        if route.get("target_capability") == "article-infographic-3x4":
+            for relative_path in reference_inputs.get("layout", []):
+                omissions.append(
+                    {
+                        "relative_path": str(relative_path),
+                        "reason": "optional dependency is not installed",
+                    }
+                )
+        return {
+            "inputs": records,
+            "referenced_image_paths": [record["path"] for record in records],
+            "omissions": omissions,
+            "view_each_before_attach": True,
+            "prompt_only_no_view_image": True,
+        }
+
+    root = Path(str(root_value)).expanduser().resolve(strict=False)
+    for style_number, relative_path in enumerate(style_paths[:style_limit], start=1):
+        index = len(records) + 1
+        records.append(
+            _reference_record(
+                root / relative_path,
+                label=f"Image {index} — style reference {style_number}",
+                role="style_reference",
+                relative_path=str(relative_path),
+            )
+        )
+    if "yazai" in selected_ids and len(style_paths) > 2:
+        omissions.append(
+            {
+                "relative_path": str(style_paths[2]),
+                "reason": "style_ref_03 is omitted by the identity-risk rule when Yazai is selected",
+            }
+        )
+
+    if route.get("target_capability") == "article-infographic-3x4":
+        for layout_number, relative_path in enumerate(reference_inputs.get("layout", []), start=1):
+            index = len(records) + 1
+            records.append(
+                _reference_record(
+                    root / relative_path,
+                    label=f"Image {index} — infographic layout reference {layout_number}",
+                    role="layout_reference",
+                    relative_path=str(relative_path),
+                )
+            )
+
+    return {
+        "inputs": records,
+        "referenced_image_paths": [record["path"] for record in records],
+        "omissions": omissions,
+        "view_each_before_attach": True,
+        "prompt_only_no_view_image": True,
+    }
+
+
+def route_request(
+    request: str,
+    *,
+    model: str | None = None,
+    model_confirmed: bool = False,
+    dependency_root: Path | None = None,
+    environment: Mapping[str, str] | None = None,
+    home: Path | None = None,
+) -> dict[str, Any]:
+    """Return a deterministic native/upstream route and its input plan."""
+
+    dependencies = _load_dependencies_by_id()
+    signal = _registered_character_signal(request)
+    dependency, capability = _select_target(request, dependencies)
+    operation = detect_operation(request)
+    adapter_signal = bool(signal["adapter_signal"])
+
+    if dependency is not None:
+        target_skill = str(dependency["skill_id"])
+        if adapter_signal:
+            mode = "upstream"
+            inject = True
+            reason = "registered character/IP signal authorizes the selected design Skill"
+        else:
+            mode = "direct-target"
+            inject = False
+            reason = (
+                "upstream capability requested without a Rongbao character/IP signal; do not inject an IP"
+                if target_skill == UPSTREAM_SKILL_ID
+                else "design Skill requested without a Rongbao character/IP signal; do not inject an IP"
+            )
+    else:
+        mode = "native"
+        target_skill = None
+        inject = True
+        reason = "ordinary article illustration remains native"
+
+    character_inputs = resolve_character_inputs(request) if inject else []
+    if dependency is None:
+        dependency_report = {
+            "skill_id": None,
+            "status": "native",
+            "installed": True,
+            "available": True,
+            "optional": False,
+            "capabilities": [],
+            "reference_inputs": {},
+            "reference_policy": "native",
+            "requires_gpt_image_2": False,
+        }
+    else:
+        dependency_report = _dependency_report(
+            dependency,
+            dependency_root=dependency_root,
+            environment=environment,
+            home=home,
+        )
+    dependency_report["reference_requirements"] = (dependency or {}).get("reference_inputs", {})
+    selected_model_gate = _model_gate_for_dependency(
+        dependency,
+        model,
+        explicitly_confirmed=model_confirmed,
+        request=request,
+    )
+    route: dict[str, Any] = {
+        "request": request,
+        "operation": operation,
+        "mode": mode,
+        "target_skill_id": target_skill,
+        "target_capability": capability,
+        "inject_character_references": inject,
+        "reason": reason,
+        "signals": signal,
+        "characters": [item["id"] for item in character_inputs],
+        "character_inputs": character_inputs,
+        "reference_policy": (dependency or {}).get("reference_policy", "native"),
+        "reference_contract": _reference_contract(dependency),
+        "dependency": dependency_report,
+        "model_gate": selected_model_gate,
+    }
+    references = assemble_reference_inputs(route, dependency_root=dependency_root)
+    route["reference_inputs"] = references["inputs"]
+    route["referenced_image_paths"] = references["referenced_image_paths"]
+    route["reference_omissions"] = references["omissions"]
+    route["image_input_contract"] = {
+        "view_each_before_attach": references["view_each_before_attach"],
+        "pass_same_order_to_referenced_image_paths": True,
+        "prompt_only_returns_paths_without_loading": references["prompt_only_no_view_image"],
+        "prompt_labels": [record["label"] for record in references["inputs"]],
+    }
+    model_ready = (
+        operation != "create"
+        or not bool((dependency or {}).get("requires_gpt_image_2", False))
+        or route["model_gate"]["direct_generation_allowed"]
+        or target_skill is None
+    )
+    route["generation_ready"] = bool(
+        target_skill is None
+        or (
+            model_ready
+            and dependency_report["installed"]
+            and (
+                not inject
+                or all(record["exists"] for record in references["inputs"])
+            )
+        )
+    )
+    return route
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Route Rongbao requests to native or optional design Skills")
+    parser.add_argument("request", help="full user request")
+    parser.add_argument("--json", action="store_true", dest="as_json", help="emit JSON")
+    parser.add_argument("--model", default=None, help="runtime model/tool name")
+    parser.add_argument(
+        "--confirm-gpt-image-2",
+        action="store_true",
+        help="explicitly confirm that the callable model is GPT Image 2",
+    )
+    args = parser.parse_args(argv)
+    try:
+        result = route_request(
+            args.request,
+            model=args.model,
+            model_confirmed=args.confirm_gpt_image_2,
+        )
+    except (DesignRoutingError, DependencyRegistryError, OSError, ValueError) as exc:
+        if args.as_json:
+            print(json.dumps({"error": str(exc)}, ensure_ascii=False, indent=2))
+        else:
+            print(f"error: {exc}")
+        return 2
+    if args.as_json:
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+    else:
+        print(f"{result['mode']}: {result['target_skill_id'] or 'native'}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -11,6 +11,107 @@
         "portrait-poster",
         "square-graphic"
       ]
+    },
+    {
+      "skill_id": "ip-illustration-character-system",
+      "repo": "EverettFish/ip_illustration_for_yourself",
+      "path": ".",
+      "install_name": "ip-illustration-character-system",
+      "ref": "main",
+      "optional": true,
+      "reference_policy": "everett-style-chain",
+      "requires_gpt_image_2": true,
+      "capabilities": [
+        "character-anchor",
+        "turnaround-sheet",
+        "mini-article-illustration",
+        "article-infographic-3x4",
+        "sticker-sheet-3x4"
+      ],
+      "reference_inputs": {
+        "style": [
+          "references/style/style_ref_01_user_docs_reader.png",
+          "references/style/style_ref_02_user_searcher.png",
+          "references/style/style_ref_03_user_catgirl_anchor.png"
+        ],
+        "layout": [
+          "references/infographic-layout/layout_ref_01_annotated_evidence.png",
+          "references/infographic-layout/layout_ref_02_timeline_dashboard.png",
+          "references/infographic-layout/layout_ref_03_data_story.png"
+        ]
+      }
+    },
+    {
+      "skill_id": "baoyu-article-illustrator",
+      "repo": "JimLiu/baoyu-skills",
+      "path": "skills/baoyu-article-illustrator",
+      "install_name": "baoyu-article-illustrator",
+      "ref": "main",
+      "optional": true,
+      "reference_policy": "direct-character",
+      "capabilities": [
+        "article-illustration"
+      ]
+    },
+    {
+      "skill_id": "baoyu-comic",
+      "repo": "JimLiu/baoyu-skills",
+      "path": "skills/baoyu-comic",
+      "install_name": "baoyu-comic",
+      "ref": "main",
+      "optional": true,
+      "reference_policy": "comic-character-sheet",
+      "capabilities": [
+        "comic"
+      ]
+    },
+    {
+      "skill_id": "baoyu-cover-image",
+      "repo": "JimLiu/baoyu-skills",
+      "path": "skills/baoyu-cover-image",
+      "install_name": "baoyu-cover-image",
+      "ref": "main",
+      "optional": true,
+      "reference_policy": "direct-character",
+      "capabilities": [
+        "cover-image"
+      ]
+    },
+    {
+      "skill_id": "baoyu-infographic",
+      "repo": "JimLiu/baoyu-skills",
+      "path": "skills/baoyu-infographic",
+      "install_name": "baoyu-infographic",
+      "ref": "main",
+      "optional": true,
+      "reference_policy": "direct-character",
+      "capabilities": [
+        "infographic"
+      ]
+    },
+    {
+      "skill_id": "baoyu-slide-deck",
+      "repo": "JimLiu/baoyu-skills",
+      "path": "skills/baoyu-slide-deck",
+      "install_name": "baoyu-slide-deck",
+      "ref": "main",
+      "optional": true,
+      "reference_policy": "deck-identity",
+      "capabilities": [
+        "slide-deck"
+      ]
+    },
+    {
+      "skill_id": "baoyu-xhs-images",
+      "repo": "JimLiu/baoyu-skills",
+      "path": "skills/baoyu-xhs-images",
+      "install_name": "baoyu-xhs-images",
+      "ref": "main",
+      "optional": true,
+      "reference_policy": "xhs-chain-anchor",
+      "capabilities": [
+        "xhs-images"
+      ]
     }
   ]
 }

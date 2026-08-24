@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import struct
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 SKILL_DIR = SCRIPT_DIR.parent
 REGISTRY_PATH = SKILL_DIR / "references" / "character-registry.json"
 ASCII_TOKEN_CHARS = r"A-Za-z0-9_-"
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 
 class CharacterRegistryError(ValueError):
@@ -54,6 +56,39 @@ def _alias_matches(alias: str, text: str) -> bool:
         return normalized_alias in text
     pattern = rf"(?<![{ASCII_TOKEN_CHARS}]){re.escape(normalized_alias)}(?![{ASCII_TOKEN_CHARS}])"
     return re.search(pattern, text) is not None
+
+
+def _resolve_skill_path(relative_path: str) -> Path:
+    """Resolve a registry path from this installed Skill's root, never cwd."""
+
+    return (SKILL_DIR / relative_path).resolve(strict=False)
+
+
+def _png_read_error(path: Path) -> str | None:
+    """Return a concise error when *path* is not a readable PNG file.
+
+    This deliberately uses only the PNG signature and IHDR header.  It catches
+    missing/truncated/wrong-format assets without adding an image dependency;
+    the image generation tool remains responsible for full decoding.
+    """
+
+    try:
+        with path.open("rb") as handle:
+            header = handle.read(33)
+    except OSError as exc:
+        return f"asset unreadable: {exc}"
+    if len(header) < 33 or header[:8] != PNG_SIGNATURE:
+        return "asset is not a readable PNG"
+    try:
+        ihdr_length = struct.unpack(">I", header[8:12])[0]
+        width, height = struct.unpack(">II", header[16:24])
+    except struct.error:
+        return "asset has an incomplete PNG header"
+    if header[12:16] != b"IHDR" or ihdr_length < 13:
+        return "asset has no valid PNG IHDR header"
+    if width <= 0 or height <= 0:
+        return "asset has invalid PNG dimensions"
+    return None
 
 
 def inspect_registry() -> dict[str, Any]:
@@ -130,12 +165,17 @@ def inspect_registry() -> dict[str, Any]:
                     item_errors.append(f"duplicate alias: {alias}")
                 else:
                     seen_aliases[alias_key] = str(character_id)
-        asset_path = SKILL_DIR / str(asset) if isinstance(asset, str) else None
-        identity_path = SKILL_DIR / str(identity_reference) if isinstance(identity_reference, str) else None
+        asset_path = _resolve_skill_path(asset) if isinstance(asset, str) else None
+        identity_path = _resolve_skill_path(identity_reference) if isinstance(identity_reference, str) else None
         asset_exists = bool(asset_path and asset_path.is_file())
         identity_exists = bool(identity_path and identity_path.is_file())
+        asset_error = None
         if not asset_exists:
             item_errors.append(f"asset missing: {asset}")
+        else:
+            asset_error = _png_read_error(asset_path)
+            if asset_error:
+                item_errors.append(f"asset invalid: {asset} ({asset_error})")
         if not identity_exists:
             item_errors.append(f"identity_reference missing: {identity_reference}")
         item_report = {
@@ -144,7 +184,11 @@ def inspect_registry() -> dict[str, Any]:
             "aliases": aliases,
             "asset": asset,
             "identity_reference": identity_reference,
+            "asset_path": str(asset_path) if asset_path else None,
+            "identity_reference_path": str(identity_path) if identity_path else None,
             "asset_exists": asset_exists,
+            "asset_readable": asset_exists and asset_error is None,
+            "asset_error": asset_error,
             "identity_reference_exists": identity_exists,
             "valid": not item_errors,
             "errors": item_errors,
@@ -173,7 +217,7 @@ def _load_validated_registry() -> dict[str, Any]:
 
 
 def resolve_characters(request: str | None = None, *, explicit: bool = False) -> list[str]:
-    """Resolve aliases in request text, defaulting to Rongbao when unnamed."""
+    """Resolve aliases in request text, defaulting to Yazai when unnamed."""
 
     registry = _load_validated_registry()
     characters = registry["characters"]
@@ -191,6 +235,39 @@ def resolve_characters(request: str | None = None, *, explicit: bool = False) ->
         supported = _supported(characters)
         raise UnknownCharacterError(request or "", supported)
     return [registry["default_character"]]
+
+
+def resolve_character_inputs(
+    request: str | None = None, *, explicit: bool = False
+) -> list[dict[str, Any]]:
+    """Resolve selected characters and their installed image/protocol paths.
+
+    The order follows the registry, making ``Image 1``, ``Image 2`` mappings
+    deterministic for downstream image generation.  Paths are always resolved
+    from this script's Skill root rather than the caller's current directory.
+    """
+
+    registry = _load_validated_registry()
+    selected_ids = resolve_characters(request, explicit=explicit)
+    by_id = {item["id"]: item for item in registry["characters"]}
+    inputs: list[dict[str, Any]] = []
+    for index, character_id in enumerate(selected_ids, start=1):
+        item = by_id[character_id]
+        asset_path = _resolve_skill_path(item["asset"])
+        identity_reference_path = _resolve_skill_path(item["identity_reference"])
+        inputs.append(
+            {
+                "id": item["id"],
+                "display_name": item["display_name"],
+                "asset": item["asset"],
+                "identity_reference": item["identity_reference"],
+                "asset_path": str(asset_path),
+                "identity_reference_path": str(identity_reference_path),
+                "input_order": index,
+                "prompt_label": f"Image {index}: {item['display_name']} identity reference only",
+            }
+        )
+    return inputs
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -214,7 +291,11 @@ def main(argv: list[str] | None = None) -> int:
     except CharacterRegistryError as exc:
         print(f"error: {exc}")
         return 2
-    result = {"request": args.request, "characters": selected}
+    result = {
+        "request": args.request,
+        "characters": selected,
+        "character_inputs": resolve_character_inputs(args.request, explicit=args.explicit),
+    }
     if args.as_json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
     else:

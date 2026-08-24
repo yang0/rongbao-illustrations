@@ -1,6 +1,6 @@
 interface:
   display_name: "绒宝配图"
-  short_description: "为中文正文生成绒宝或牙仔配图，并按需组合封面、竖版海报和方图设计 Skill"
-  default_prompt: "Use $rongbao-illustrations to 为这篇中文文章设计并生成几张绒宝怪诞正文配图。"
+  short_description: "按名称生成绒宝、牙仔或阿龅配图，并按需组合 Dongfang、Everett 与 Baoyu 设计 Skill"
+  default_prompt: "Use $rongbao-illustrations to 为这篇中文文章设计并生成几张牙仔黑白怪诞正文配图；需要漫画、幻灯片或小红书图片时按需组合 Baoyu Skill。"
 policy:
   allow_implicit_invocation: true
