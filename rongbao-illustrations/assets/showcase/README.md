@@ -5,6 +5,7 @@ This directory is the source-of-truth map for the IP and capability gallery in t
 ## Source boundary
 
 - `gallery-map.json` records the three registered IPs, every native or registered design capability, the copyable invocation, the target Skill, the expected aspect ratio, dependency-install status, and the image status.
+- `gallery-map.json` also records `style_variant_gallery`, which contains colorful cross-Skill examples so the gallery does not imply that every mounted Skill shares the native white-background sketch style.
 - `image_path` values point only to files already present in this repository. The comic and sticker previews are project-generated examples, not copied upstream material.
 - Every registered capability now has a local project-generated preview. These previews prove the intended capability and aspect ratio; they are not official outputs or copied assets from optional upstream Skills.
 - Optional dependencies remain optional: this folder does not vendor Dongfang, Everett, or Baoyu source code, style references, or assets.
@@ -40,5 +41,17 @@ The JSON is intentionally declarative. Use it to keep the README table, local sh
 | Baoyu | `infographic` | `baoyu-infographic` | 4:3 | Yes | [`baoyu-infographic.png`](baoyu-infographic.png) |
 | Baoyu | `slide-deck` | `baoyu-slide-deck` | 16:9 | Yes | [`baoyu-slide-deck.png`](baoyu-slide-deck.png) |
 | Baoyu | `xhs-images` | `baoyu-xhs-images` | 3:4 | Yes | [`baoyu-xhs-images.png`](baoyu-xhs-images.png) |
+
+## Style variant previews
+
+These additional previews are project-generated derivatives. They demonstrate that Rongbao supplies identity references while the mounted Skill controls the medium, palette, layout, and output ratio.
+
+| Group | Style | Target Skill | Aspect | Preview |
+| --- | --- | --- | --- | --- |
+| Guizang | Swiss International | `guizang-social-card-skill` | 3:4 | [`guizang-swiss-social-card.png`](guizang-swiss-social-card.png) |
+| Guizang | Editorial Magazine | `guizang-social-card-skill` | 3:4 | [`guizang-editorial-social-card.png`](guizang-editorial-social-card.png) |
+| Dongfang | 彩色水墨 Editorial Cover | `dongfang-cover-design` | 16:9 | [`dongfang-color-ink-cover.png`](dongfang-color-ink-cover.png) |
+| Everett | 彩色角色锚点 | `ip-illustration-character-system` | 3:4 | [`everett-color-character-anchor.png`](everett-color-character-anchor.png) |
+| Baoyu | 彩色知识漫画 | `baoyu-comic` | 4:3 | [`baoyu-color-comic.png`](baoyu-color-comic.png) |
 
 The available comic and sticker files are evidence of local project output only. They are not claims that the optional target Skill is installed in this checkout or that its output contract has been independently re-run.

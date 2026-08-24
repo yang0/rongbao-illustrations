@@ -269,6 +269,12 @@ Use $rongbao-illustrations create 让绒宝、牙仔和阿龅共同完成一张 
 
 Guizang 是独立的社交卡片排版 Skill，Rongbao 只负责角色选择与身份参考图注入，版式、主题色、平台尺寸和 Live Photo 流程由上游负责。它不修改 Rongbao 的原生白底手绘规则。
 
+下面两张是本项目为 Guizang 生成的风格预览：同一个牙仔身份可以被重新绘制成瑞士网格或电子杂志，而不是强行套用白底简笔画。
+
+| Guizang 瑞士风 3:4 | Guizang 电子杂志风 3:4 |
+| --- | --- |
+| ![Guizang 瑞士风示例](rongbao-illustrations/assets/showcase/guizang-swiss-social-card.png) | ![Guizang 电子杂志风示例](rongbao-illustrations/assets/showcase/guizang-editorial-social-card.png) |
+
 | 能力 | 画幅 | 目标 Skill | 需安装依赖 | 复制调用示例 |
 | --- | --- | --- | --- | --- |
 | 小红书图文组图 / `xhs-social-cards` | 3:4 | `guizang-social-card-skill` | 是，确认安装 Guizang | `Use $rongbao-illustrations create 用牙仔做一套归藏小红书图文。` |
@@ -278,6 +284,16 @@ Guizang 是独立的社交卡片排版 Skill，Rongbao 只负责角色选择与�
 | Live Photo / `live-photo-card` | 3:4 / 视频卡 | `guizang-social-card-skill` | 是，确认安装 Guizang | `Use $rongbao-illustrations create 用牙仔把这段视频做成小红书 Live Photo。` |
 
 如果只说“做一套小红书图文”而没有指定视觉系统，路由器会先返回三个候选：归藏瑞士风、归藏电子杂志风、Baoyu 小红书图文；选择后才会生成。显式写“归藏”或 `guizang-social-card-skill` 时不会触发这个询问。
+
+### 挂载 Skill 风格对照
+
+这些示例专门用来说明“角色身份”和“目标媒介”是两层配置。原生 Rongbao 保持白底手绘；挂载 Skill 可以呈现水墨、杂志、网格、漫画和高彩色角色设定等不同结果。
+
+| Dongfang 彩色水墨封面 | Everett 彩色角色锚点 | Baoyu 彩色知识漫画 |
+| --- | --- | --- |
+| ![Dongfang 彩色水墨封面](rongbao-illustrations/assets/showcase/dongfang-color-ink-cover.png) | ![Everett 彩色角色锚点](rongbao-illustrations/assets/showcase/everett-color-character-anchor.png) | ![Baoyu 彩色知识漫画](rongbao-illustrations/assets/showcase/baoyu-color-comic.png) |
+
+这些图是本项目基于各 IP 原图生成的衍生示例，不是上游仓库的官方素材；实际调用时仍由目标 Skill 决定最终媒介和版式。
 
 ---
 

@@ -207,5 +207,47 @@
       "image_status": "available",
       "image_source": "project-generated capability preview; not a Baoyu asset"
     }
+  ],
+  "style_variant_gallery": [
+    {
+      "group": "Guizang",
+      "style": "Swiss International",
+      "aspect_ratio": "3:4",
+      "target_skill": "guizang-social-card-skill",
+      "image_path": "rongbao-illustrations/assets/showcase/guizang-swiss-social-card.png",
+      "image_source": "project-generated style variant; not a Guizang asset"
+    },
+    {
+      "group": "Guizang",
+      "style": "Editorial Magazine",
+      "aspect_ratio": "3:4",
+      "target_skill": "guizang-social-card-skill",
+      "image_path": "rongbao-illustrations/assets/showcase/guizang-editorial-social-card.png",
+      "image_source": "project-generated style variant; not a Guizang asset"
+    },
+    {
+      "group": "Dongfang",
+      "style": "彩色水墨 Editorial Cover",
+      "aspect_ratio": "16:9",
+      "target_skill": "dongfang-cover-design",
+      "image_path": "rongbao-illustrations/assets/showcase/dongfang-color-ink-cover.png",
+      "image_source": "project-generated style variant; not a Dongfang asset"
+    },
+    {
+      "group": "Everett",
+      "style": "彩色角色锚点",
+      "aspect_ratio": "3:4",
+      "target_skill": "ip-illustration-character-system",
+      "image_path": "rongbao-illustrations/assets/showcase/everett-color-character-anchor.png",
+      "image_source": "project-generated style variant; not an Everett asset"
+    },
+    {
+      "group": "Baoyu",
+      "style": "彩色知识漫画",
+      "aspect_ratio": "4:3",
+      "target_skill": "baoyu-comic",
+      "image_path": "rongbao-illustrations/assets/showcase/baoyu-color-comic.png",
+      "image_source": "project-generated style variant; not a Baoyu asset"
+    }
   ]
 }
