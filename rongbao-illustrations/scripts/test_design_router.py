@@ -32,6 +32,8 @@ BAOYU_DEPENDENCIES = [
     item for item in DEPENDENCIES if str(item["skill_id"]).startswith("baoyu-")
 ]
 GUIZANG = DEPENDENCIES_BY_ID["guizang-social-card-skill"]
+GPT_IMAGE_2_STYLE_LIBRARY = DEPENDENCIES_BY_ID["gpt-image-2-style-library"]
+GBRO = DEPENDENCIES_BY_ID["gbro-cover-design"]
 PNG_BYTES = (SKILL_DIR / "assets" / "rongbao.png").read_bytes()
 
 
@@ -52,6 +54,12 @@ def write_skill_fixture(root: Path, skill_name: str) -> None:
         f"---\nname: {skill_name}\ndescription: fixture\n---\n",
         encoding="utf-8",
     )
+
+
+def write_gbro_fixture(root: Path, *, include_references: bool = True) -> None:
+    write_skill_fixture(root, GBRO["skill_id"])
+    if include_references:
+        (root / "references").mkdir(parents=True, exist_ok=True)
 
 
 def test_dependency_probe() -> None:
@@ -254,6 +262,110 @@ def test_dependency_sibling_candidates() -> None:
         )
         assert (ROOT.parent / "ip_illustration_for_yourself").resolve() in root_dependency_candidates
         assert (ROOT.parent / "dongfang" / "dongfang-cover-design").resolve() in nested_dependency_candidates
+
+        enhancer_candidates = dependency_candidate_paths(
+            GPT_IMAGE_2_STYLE_LIBRARY,
+            skill_root=SKILL_DIR,
+            environment={},
+            home=temp_root,
+        )
+        assert (
+            ROOT.parent
+            / "awesome-gpt-image-2"
+            / "agents"
+            / "skills"
+            / "gpt-image-2-style-library"
+        ).resolve() in enhancer_candidates
+
+
+def test_gpt_image_2_style_library_is_opt_in_prompt_enhancer() -> None:
+    assert GPT_IMAGE_2_STYLE_LIBRARY["repo"] == "freestylefly/awesome-gpt-image-2"
+    assert GPT_IMAGE_2_STYLE_LIBRARY["path"] == "agents/skills/gpt-image-2-style-library"
+    assert GPT_IMAGE_2_STYLE_LIBRARY["install_name"] == "gpt-image-2-style-library"
+    assert GPT_IMAGE_2_STYLE_LIBRARY["ref"] == "main"
+    assert GPT_IMAGE_2_STYLE_LIBRARY["optional"] is True
+    assert GPT_IMAGE_2_STYLE_LIBRARY["license"] == "MIT"
+    assert GPT_IMAGE_2_STYLE_LIBRARY["purpose"] == "prompt-enhancement"
+    with tempfile.TemporaryDirectory() as temporary:
+        temp_root = Path(temporary)
+        dongfang_root = temp_root / "dongfang"
+        enhancer_root = temp_root / "gpt-image-2-style-library"
+        write_skill_fixture(dongfang_root, DONGFANG["skill_id"])
+        write_skill_fixture(enhancer_root, GPT_IMAGE_2_STYLE_LIBRARY["skill_id"])
+
+        ordinary = route_request(
+            "Use $rongbao-illustrations create 用牙仔做一张横版封面",
+            dependency_root=dongfang_root,
+            model="image_gen",
+        )
+        assert ordinary["target_skill_id"] == DONGFANG["skill_id"]
+        assert ordinary["prompt_enhancer"] is None
+
+        enhanced = route_request(
+            "Use $rongbao-illustrations create 用牙仔做一张横版封面，并使用 GPT Image 2 风格库增强提示词",
+            dependency_root=dongfang_root,
+            prompt_enhancer_root=enhancer_root,
+            model="image_gen",
+        )
+        assert enhanced["target_skill_id"] == DONGFANG["skill_id"]
+        assert enhanced["target_capability"] == "landscape-cover"
+        assert enhanced["prompt_enhancer"]["skill_id"] == GPT_IMAGE_2_STYLE_LIBRARY["skill_id"]
+        assert enhanced["prompt_enhancer"]["status"] == "installed"
+        assert enhanced["prompt_enhancement"]["base_target_unchanged"] is True
+        assert enhanced["prompt_enhancement"]["output_fields"] == [
+            "template_name",
+            "style_tags",
+            "scene_tags",
+            "case_ids",
+            "structured_prompt",
+            "negative_constraints",
+        ]
+        assert enhanced["model_gate"]["required_by"] == [
+            GPT_IMAGE_2_STYLE_LIBRARY["skill_id"]
+        ]
+        assert enhanced["model_gate"]["delivery"] == "prompt-package"
+        assert enhanced["generation_ready"] is False
+
+        confirmed = route_request(
+            "Use $rongbao-illustrations create 用牙仔做一张横版封面，并使用 gpt-image-2-style-library 增强提示词",
+            dependency_root=dongfang_root,
+            prompt_enhancer_root=enhancer_root,
+            model="gpt-image-2",
+            model_confirmed=True,
+        )
+        assert confirmed["target_skill_id"] == DONGFANG["skill_id"]
+        assert confirmed["prompt_enhancer"]["skill_id"] == GPT_IMAGE_2_STYLE_LIBRARY["skill_id"]
+        assert confirmed["model_gate"]["direct_generation_allowed"] is True
+        assert confirmed["generation_ready"] is True
+
+        baoyu_enhanced = route_request(
+            "Use $rongbao-illustrations prompt 用绒宝做 Baoyu 知识漫画，并按模板增强提示词",
+            prompt_enhancer_root=enhancer_root,
+            model="gpt-image-2",
+            model_confirmed=True,
+        )
+        assert baoyu_enhanced["target_skill_id"] == "baoyu-comic"
+        assert baoyu_enhanced["prompt_enhancer"]["skill_id"] == GPT_IMAGE_2_STYLE_LIBRARY["skill_id"]
+
+        guizang_enhanced = route_request(
+            "Use $rongbao-illustrations prompt 用阿龅做归藏瑞士风社交卡，并使用模板库增强提示词",
+            prompt_enhancer_root=enhancer_root,
+            model="gpt-image-2",
+            model_confirmed=True,
+        )
+        assert guizang_enhanced["target_skill_id"] == GUIZANG["skill_id"]
+        assert guizang_enhanced["prompt_enhancer"]["skill_id"] == GPT_IMAGE_2_STYLE_LIBRARY["skill_id"]
+
+        missing = route_request(
+            "Use $rongbao-illustrations prompt 用牙仔做一张方图，并使用 GPT Image 2 模板库增强提示词",
+            environment={"CODEX_HOME": str(temp_root / "missing-codex")},
+            home=temp_root,
+        )
+        assert missing["target_skill_id"] == DONGFANG["skill_id"]
+        assert missing["prompt_enhancer"]["status"] == "missing"
+        assert missing["prompt_enhancer"]["license"] == "MIT"
+        assert "--path agents/skills/gpt-image-2-style-library" in missing["prompt_enhancer"]["install"]["command"]
+
 
 
 def test_guizang_routing_and_style_selection() -> None:
@@ -570,6 +682,128 @@ def test_model_gate() -> None:
     assert model_gate("gpt-image-2", request="请使用 GPT Image 2 生成")["direct_generation_allowed"] is True
 
 
+def test_gbro_dependency_probe_and_required_references() -> None:
+    assert GBRO["repo"] == "pyang5166/gbro-cover-design"
+    assert GBRO["path"] == "."
+    assert GBRO["install_name"] == "gbro-cover-design"
+    assert GBRO["ref"] == "main"
+    assert GBRO["optional"] is True
+    assert GBRO["license"] == "MIT"
+    assert GBRO["reference_policy"] == "gbro-cover-prompt"
+    assert GBRO["output_mode"] == "prompt-only"
+    assert GBRO["fixed_aspect_ratio"] == "3:4"
+    assert GBRO["required_paths"] == ["references"]
+    with tempfile.TemporaryDirectory() as temporary:
+        temp_root = Path(temporary)
+        codex_home = temp_root / "codex"
+        installed = codex_home / "skills" / GBRO["install_name"]
+        write_gbro_fixture(installed)
+        environment = {"CODEX_HOME": str(codex_home)}
+
+        report = inspect_dependency(GBRO, skill_root=SKILL_DIR, environment=environment, home=temp_root)
+        assert report["status"] == "installed"
+        assert report["root_path"] is True
+        assert report["required_paths"] == ["references"]
+        assert report["locations"][0]["required_paths_present"] is True
+        assert report["source"] == "https://github.com/pyang5166/gbro-cover-design/tree/main"
+        assert report["install"]["args"] == [
+            "--repo",
+            "pyang5166/gbro-cover-design",
+            "--path",
+            ".",
+            "--name",
+            "gbro-cover-design",
+            "--ref",
+            "main",
+        ]
+
+        (installed / "references").rmdir()
+        invalid = inspect_dependency(GBRO, skill_root=SKILL_DIR, environment=environment, home=temp_root)
+        assert invalid["status"] == "invalid"
+        assert invalid["installed"] is False
+        assert invalid["locations"][0]["required_paths_present"] is False
+        assert doctor.strict_dependency_failure([invalid]) is True
+
+        missing = inspect_dependency(
+            GBRO,
+            skill_root=SKILL_DIR,
+            environment={"CODEX_HOME": str(temp_root / "missing-codex")},
+            home=temp_root,
+        )
+        assert missing["status"] == "missing"
+        assert missing["optional"] is True
+        assert doctor.strict_dependency_failure([missing]) is False
+
+
+def test_gbro_explicit_prompt_routing_and_identity_order() -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+        temp_root = Path(temporary)
+        gbro_root = temp_root / "gbro-cover-design"
+        write_gbro_fixture(gbro_root)
+
+        ordinary = route_request(
+            "做一张普通横版封面",
+            dependency_root=gbro_root,
+            environment={"CODEX_HOME": str(temp_root / "missing-codex")},
+            home=temp_root,
+        )
+        assert ordinary["target_skill_id"] == DONGFANG["skill_id"]
+        assert ordinary["target_capability"] == "landscape-cover"
+
+        direct = route_request(
+            "Use gbro-cover-design prompt 做一张 3:4 竖版封面",
+            dependency_root=gbro_root,
+            environment={"CODEX_HOME": str(temp_root / "missing-codex")},
+            home=temp_root,
+        )
+        assert direct["mode"] == "direct-target"
+        assert direct["target_skill_id"] == GBRO["skill_id"]
+        assert direct["target_capability"] == "cover-prompt-3x4"
+        assert direct["inject_character_references"] is False
+        assert direct["characters"] == []
+        assert direct["delivery_mode"] == "prompt-package"
+        assert direct["prompt_only"] is True
+        assert direct["prompt_package"]["briefing_rounds"] == 3
+        assert direct["prompt_package"]["layout_style_count"] == 10
+        assert direct["generation_ready"] is False
+
+        injected = route_request(
+            "Use $rongbao-illustrations create 用绒宝和阿龅让 gbro 做一张三轮提问封面",
+            dependency_root=gbro_root,
+        )
+        assert injected["mode"] == "upstream"
+        assert injected["target_skill_id"] == GBRO["skill_id"]
+        assert injected["target_capability"] == "cover-prompt-3x4"
+        assert injected["characters"] == ["rongbao", "abao"]
+        assert [Path(path).name for path in injected["referenced_image_paths"]] == [
+            "rongbao.png",
+            "abao.png",
+        ]
+        assert [item["role"] for item in injected["reference_inputs"]] == [
+            "character_identity",
+            "character_identity",
+        ]
+        assert all(item["face_reference"] is False for item in injected["reference_inputs"])
+        assert injected["reference_contract"]["face_reference_semantics"] is False
+        assert injected["generation_ready"] is False
+
+        ten_styles = route_request(
+            "用牙仔做一张 10 种构图风格封面",
+            dependency_root=gbro_root,
+        )
+        assert ten_styles["target_skill_id"] == GBRO["skill_id"]
+        assert ten_styles["characters"] == ["yazai"]
+
+        incompatible = route_request(
+            "Use gbro 封面 create 用牙仔做一张 16:9 横版封面",
+            dependency_root=gbro_root,
+        )
+        assert incompatible["target_skill_id"] == GBRO["skill_id"]
+        assert incompatible["aspect_ratio"]["compatible"] is False
+        assert "固定 3:4" in incompatible["aspect_ratio"]["warning"]
+        assert incompatible["generation_ready"] is False
+
+
 test_dependency_probe()
 test_baoyu_dependency_probe()
 test_guizang_dependency_probe()
@@ -577,4 +811,6 @@ test_dependency_sibling_candidates()
 test_guizang_routing_and_style_selection()
 test_routing_and_input_order()
 test_model_gate()
+test_gbro_dependency_probe_and_required_references()
+test_gbro_explicit_prompt_routing_and_identity_order()
 print("design router tests passed")

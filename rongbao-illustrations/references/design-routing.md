@@ -13,6 +13,7 @@
 | 只有萌粒、角色锚点、转面、3:4 信息图或 3:4 贴纸页，没有角色/IP 信号 | 生成 `ip-illustration-character-system` 的 `direct-target` 计划，不注入 Rongbao 图片 |
 | 显式调用 `baoyu-*`，或“Baoyu/宝玉 + 文章配图、封面、信息图、知识漫画、漫画、小红书图片、图片卡片、幻灯片/slide deck” | 优先路由到对应 Baoyu Skill；有 Rongbao IP 信号时注入已选角色，否则为 `direct-target` |
 | 显式调用 `guizang-social-card-skill`、写“归藏”、瑞士风社交卡、电子杂志社交卡、公众号封面对或 Live Photo | 路由到 `guizang-social-card-skill` 的对应能力；有 Rongbao IP 信号时注入已选角色，否则为 `direct-target` |
+| 显式调用 `gbro`、`gbro-cover-design`、写“gbro 封面”“三轮提问封面”或“10 种构图风格封面” | 路由到 `gbro-cover-design` / `cover-prompt-3x4`；有 Rongbao IP 信号时注入已选角色，否则为 `direct-target`；始终只输出 3:4 提示词包 |
 | 泛指小红书图文/图片但未选择视觉系统 | 返回 `style_selection_required: true`，候选为归藏瑞士风、归藏电子杂志风和 Baoyu `xhs-images`；不自动抢占任一目标 |
 | 只有知识漫画、漫画、小红书图片、图片卡片或幻灯片/slide deck，没有 Rongbao IP 信号 | 路由到对应 Baoyu Skill 的 `direct-target`，不注入 Rongbao 图片 |
 | 只有 `$dongfang-cover-design`，但没有绒宝/牙仔/阿龅/IP 身份信号 | 仅执行用户明确点名的目标 Skill，不注入任何角色参考图，不由本 adapter 组合 |
@@ -41,6 +42,8 @@
 - 归藏电子杂志社交卡 → `guizang-social-card-skill` / `editorial-social-card`
 - 归藏公众号 21:9 + 1:1 封面对 → `guizang-social-card-skill` / `wechat-cover-pair`
 - 归藏 Live Photo 动态卡 → `guizang-social-card-skill` / `live-photo-card`
+- gbro 三轮提问封面、10 种构图风格封面 → `gbro-cover-design` / `cover-prompt-3x4`
+- gbro 的 3:4 固定画幅、10 种模板和三轮提问 → `ten-layout-styles` / `three-round-briefing` / `character-reference-prompt`
 - 幻灯片、slide deck、演示文稿 → `baoyu-slide-deck`
 - Baoyu 封面、Baoyu 信息图 → `baoyu-cover-image` / `baoyu-infographic`
 
@@ -54,6 +57,26 @@
 - 需要上游能力时，运行 `scripts/design_router.py --json "<request>"`；它会保留 `create|prompt` 语义，输出 `target_skill_id`、`target_capability`、`dependency.status`、`reference_inputs` 和同序 `referenced_image_paths`。能力词或显式上游名称即使没有角色/IP信号，也会输出 `direct-target` 计划；只有有角色/IP信号时才进入带角色输入的 `upstream` 模式。实际生图/改图还必须对每条 `reference_inputs` 调用 `view_image`，再把同一顺序的路径传给目标工具。
 - Baoyu 的 `reference_policy` 决定原图输入策略：`direct-character` 用于文章配图、封面和信息图；`comic-character-sheet` 保证注册原图优先、衍生角色表仅作 secondary anchor；`deck-identity` 允许角色只出现在内容合适的页面；`xhs-chain-anchor` 将所有选中角色原图作为第一张生成的 direct references，并将第一张生成成品作为后续链式 anchor。Baoyu 不使用 Everett 的 GPT Image 2 门禁。
 - 归藏使用 `social-card-character`：所有选中角色的原始 `asset_path` 位于全部输入最前，并保留对应 `identity_reference_path`；风格、版式、平台画幅和 Live Photo 处理服从归藏上游。角色应出现在封面及至少一个承担内容表达的页面，纯截图或数据页可不强制放入角色。
+
+### GPT Image 2 风格库增强层
+
+只有请求明确点名 `gpt-image-2-style-library`、GPT Image 2 风格库或“模板库增强提示词”时，才在现有目标旁设置 `prompt_enhancer`；普通请求不会触发。增强层只提供 `template_name`、`style_tags`、`scene_tags`、`case_ids`、`structured_prompt` 和 `negative_constraints`，不改变 `target_skill_id`、画幅、版式、角色身份或参考图顺序。角色原图始终是身份输入，不得作为风格参考。
+
+缺失依赖时使用：
+
+```text
+$skill-installer install --repo freestylefly/awesome-gpt-image-2 --path agents/skills/gpt-image-2-style-library --name gpt-image-2-style-library --ref main
+```
+
+该上游要求 GPT Image 2 才可将增强结果直接用于 `create`；模型未明确确认时只交付完整 prompt package、角色协议路径和同序参考图路径。
+
+### gbro 3:4 封面提示词
+
+只有显式出现 `gbro`、`gbro-cover-design`、“gbro 封面”、“三轮提问封面”或“10 种构图风格封面”时，才选择 `gbro-cover-design`；普通封面保持 Dongfang/Baoyu 路由。gbro 固定 3:4 竖版，目标 Skill 保留三轮提问、10 种构图模板、标题建议、空间关系和安全区定义，Rongbao adapter 不把它当作图像生成器。
+
+组合模式的角色输入固定为：已选角色原始 `asset_path` →（无额外风格图）目标 Skill 的身份提示词。角色图在提示词中标为每个 IP 的 `identity reference only`，不是 gbro 上游所说的真人脸部参考；不得改变角色五官、体型、服饰、身份色或尾巴等锚点，多角色必须分别保持身份并共同参与封面叙事。没有角色/IP信号时不注入默认牙仔。
+
+`prompt` 和 `create` 对 gbro 都返回完整 `prompt-package`，不直接生图。用户明确要求 16:9、4:3 或 1:1 时，返回固定 3:4 的不兼容警告并建议切换 Dongfang/Baoyu，不静默裁切。上游 `references/` 是必需运行资源，doctor 会把缺少它的安装判为 invalid。
 
 ## 组合执行
 
@@ -153,6 +176,26 @@ $skill-installer install --repo op7418/guizang-social-card-skill --path . --name
 
 不要复制上游源码、模板或素材。用户拒绝时不安装、不修改环境，也不模拟归藏的版式能力。
 
+gbro 可选依赖缺失时只展示一次来源、MIT、固定画幅和完整仓库安装参数，并请求一次确认：
+
+```text
+缺少组合依赖：gbro-cover-design
+来源：https://github.com/pyang5166/gbro-cover-design
+参数：repo `pyang5166/gbro-cover-design` / path `.` / name `gbro-cover-design` / ref `main`
+能力：cover-prompt-3x4 / ten-layout-styles / three-round-briefing / character-reference-prompt
+输出：prompt-only，固定 3:4 竖版；完整仓库必须包含 `references/`
+许可证：MIT（以上游仓库声明为准）
+是否使用系统 $skill-installer 从 GitHub 安装上述依赖？
+```
+
+确认后交给系统 `$skill-installer`：
+
+```text
+$skill-installer install --repo pyang5166/gbro-cover-design --path . --name gbro-cover-design --ref main
+```
+
+不要复制 gbro 的源码、`references/`、模板、示例或素材；用户拒绝时不安装、不修改环境，也不把 Rongbao 的原生正文规则伪装成 gbro 封面提示词。
+
 ## 扩展注册
 
-新增目标设计 Skill 时，只需在注册表增加 `skill_id`、可选 `install_name`、GitHub `repo`、Skill `path`、Git ref `ref`、`optional`、`reference_policy` 和 `capabilities`，并在本文件增加明确的身份信号与能力映射。需要 GPT Image 2 的目标才声明 `requires_gpt_image_2: true`；根路径用 `path: "."`，doctor 与安装信息会保留仓库根位置，不生成 `/.`。不要把目标 Skill 的源码或图片复制到本仓库。
+新增目标设计 Skill 时，只需在注册表增加 `skill_id`、可选 `install_name`、GitHub `repo`、Skill `path`、Git ref `ref`、`optional`、`reference_policy` 和 `capabilities`，并在本文件增加明确的身份信号与能力映射。需要 GPT Image 2 的目标才声明 `requires_gpt_image_2: true`；若上游要求额外目录（如 gbro 的 `references/`），声明 `required_paths`，doctor 会将缺少目录的安装判为 invalid；根路径用 `path: "."`，doctor 与安装信息会保留仓库根位置，不生成 `/.`。不要把目标 Skill 的源码或图片复制到本仓库。

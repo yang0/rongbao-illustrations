@@ -27,7 +27,7 @@ The JSON is intentionally declarative. Use it to keep the README table, local sh
 | Group | Capability | Target Skill | Aspect | Install dependency | Current image |
 | --- | --- | --- | --- | --- | --- |
 | Rongbao 原生 | `article-illustration` | `rongbao-illustrations` | 16:9 | No | [`01-two-breakpoints.png`](../examples/01-two-breakpoints.png) |
-| Dongfang | `landscape-cover` | `dongfang-cover-design` | 16:9 | Yes | [`dongfang-landscape-cover.png`](dongfang-landscape-cover.png) |
+| Dongfang | `landscape-cover`（AI 工作流实验室高密度缩略图） | `dongfang-cover-design` | 16:9 | Yes | [`dongfang-landscape-cover.png`](dongfang-landscape-cover.png) |
 | Dongfang | `portrait-poster` | `dongfang-cover-design` | 3:4 | Yes | [`dongfang-portrait-poster.png`](dongfang-portrait-poster.png) |
 | Dongfang | `square-graphic` | `dongfang-cover-design` | 1:1 | Yes | [`dongfang-square-graphic.png`](dongfang-square-graphic.png) |
 | Everett | `character-anchor` | `ip-illustration-character-system` | 3:4 | Yes | [`everett-character-anchor.png`](everett-character-anchor.png) |
@@ -41,6 +41,7 @@ The JSON is intentionally declarative. Use it to keep the README table, local sh
 | Baoyu | `infographic` | `baoyu-infographic` | 4:3 | Yes | [`baoyu-infographic.png`](baoyu-infographic.png) |
 | Baoyu | `slide-deck` | `baoyu-slide-deck` | 16:9 | Yes | [`baoyu-slide-deck.png`](baoyu-slide-deck.png) |
 | Baoyu | `xhs-images` | `baoyu-xhs-images` | 3:4 | Yes | [`baoyu-xhs-images.png`](baoyu-xhs-images.png) |
+| gbro | `cover-prompt-3x4` | `gbro-cover-design` | 3:4 | Yes | [`gbro-abao-robot-price.png`](gbro-abao-robot-price.png) |
 
 ## Style variant previews
 
@@ -54,5 +55,8 @@ These additional previews are project-generated derivatives. They demonstrate th
 | Dongfang | Non-Chinese high-density color poster | `dongfang-cover-design` | 3:4 | [`dongfang-non-chinese-color-poster.png`](dongfang-non-chinese-color-poster.png) |
 | Everett | 彩色角色锚点 | `ip-illustration-character-system` | 3:4 | [`everett-color-character-anchor.png`](everett-color-character-anchor.png) |
 | Baoyu | 彩色知识漫画 | `baoyu-comic` | 4:3 | [`baoyu-color-comic.png`](baoyu-color-comic.png) |
+| gbro | 阿龅机器人降价封面 | `gbro-cover-design` | 3:4 | [`gbro-abao-robot-price.png`](gbro-abao-robot-price.png) |
+| Rongbao composition | 真实场景 + 手绘牙仔 | `rongbao-illustrations` | 4:3 | [`real-scene-handdrawn-yazai.png`](real-scene-handdrawn-yazai.png) |
+| Rongbao composition | 3D 动画电影感封面 | `rongbao-illustrations` | 16:9 | [`yazai-3d-animated-cover.png`](yazai-3d-animated-cover.png) |
 
 The available comic and sticker files are evidence of local project output only. They are not claims that the optional target Skill is installed in this checkout or that its output contract has been independently re-run.

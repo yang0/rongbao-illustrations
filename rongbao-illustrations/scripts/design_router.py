@@ -22,6 +22,8 @@ REGISTRY_PATH = SKILL_DIR / "references" / "design-dependencies.json"
 UPSTREAM_SKILL_ID = "ip-illustration-character-system"
 DONGFANG_SKILL_ID = "dongfang-cover-design"
 GUIZANG_SKILL_ID = "guizang-social-card-skill"
+GPT_IMAGE_2_STYLE_LIBRARY_ID = "gpt-image-2-style-library"
+GBRO_SKILL_ID = "gbro-cover-design"
 BAOYU_SKILL_IDS = {
     "baoyu-article-illustrator",
     "baoyu-comic",
@@ -54,7 +56,7 @@ from character_router import (  # noqa: E402
 )
 from dependency_utils import (  # noqa: E402
     DependencyRegistryError,
-    frontmatter_name,
+    inspect_dependency_location,
     inspect_dependency,
     load_dependency_registry,
 )
@@ -226,6 +228,42 @@ GUIZANG_GENERIC_XHS_ALIASES: tuple[str, ...] = (
     "xhs",
 )
 
+GBRO_CAPABILITY_ALIASES: tuple[str, ...] = (
+    "gbro",
+    "gbro-cover-design",
+    "三轮提问封面",
+    "三轮提问的封面",
+    "三轮问答封面",
+    "10种构图风格封面",
+    "10 种构图风格封面",
+    "十种构图风格封面",
+)
+
+PROMPT_ENHANCER_ALIASES: tuple[str, ...] = (
+    "gpt-image-2-style-library",
+    "freestylefly/awesome-gpt-image-2",
+    "awesome-gpt-image-2",
+    "gpt image 2 style library",
+    "gpt image 2 风格库",
+    "gpt image 2 模板库",
+    "gpt image2 风格库",
+    "gpt image2 模板库",
+    "模板库增强提示词",
+    "模板库增强",
+    "按模板增强提示词",
+    "风格库增强提示词",
+    "prompt enhancement",
+)
+
+PROMPT_ENHANCER_OUTPUTS: tuple[str, ...] = (
+    "template_name",
+    "style_tags",
+    "scene_tags",
+    "case_ids",
+    "structured_prompt",
+    "negative_constraints",
+)
+
 
 class DesignRoutingError(ValueError):
     """Raised when the dependency registry cannot support routing."""
@@ -286,7 +324,64 @@ def _target_skill_signal(request: str, dependency: Mapping[str, Any]) -> bool:
     }
     if dependency.get("skill_id") == UPSTREAM_SKILL_ID:
         aliases.add("ip_illustration_for_yourself")
+    if dependency.get("skill_id") == GBRO_SKILL_ID:
+        aliases.update(GBRO_CAPABILITY_ALIASES)
     return any(_contains_ascii_token(alias, text) for alias in aliases)
+
+
+def _gbro_signal(request: str) -> bool:
+    """Detect explicit gbro invocation without claiming ordinary covers."""
+
+    text = request.casefold()
+    for alias in GBRO_CAPABILITY_ALIASES:
+        if alias.isascii():
+            if _contains_ascii_token(alias, text):
+                return True
+        elif alias.casefold() in text:
+            return True
+    return False
+
+
+def _prompt_enhancer_signal(request: str) -> bool:
+    """Detect an explicit GPT Image 2 style-library enhancement request.
+
+    The enhancer is deliberately opt-in.  Generic words such as ``风格`` or
+    ``模板`` do not activate it, so existing target Skill routing remains
+    unchanged unless the user names this library or asks for template-based
+    prompt enhancement.
+    """
+
+    text = request.casefold()
+    for alias in PROMPT_ENHANCER_ALIASES:
+        if alias.isascii():
+            if _contains_ascii_token(alias, text):
+                return True
+        elif alias.casefold() in text:
+            return True
+    return bool(
+        re.search(
+            r"gpt\s*image\s*2[^。\n]{0,24}(?:风格库|模板库)[^。\n]{0,12}(?:增强|优化)",
+            text,
+            flags=re.IGNORECASE,
+        )
+    )
+
+
+def _is_prompt_enhancer_dependency(dependency: Mapping[str, Any]) -> bool:
+    return str(dependency.get("purpose", "")).casefold() == "prompt-enhancement" or str(
+        dependency.get("skill_id", "")
+    ) == GPT_IMAGE_2_STYLE_LIBRARY_ID
+
+
+def _select_prompt_enhancer(
+    request: str,
+    dependencies: Mapping[str, Mapping[str, Any]],
+) -> Mapping[str, Any] | None:
+    """Select the opt-in prompt enhancer without replacing the base target."""
+
+    if not _prompt_enhancer_signal(request):
+        return None
+    return dependencies.get(GPT_IMAGE_2_STYLE_LIBRARY_ID)
 
 
 def _guizang_signal(request: str) -> bool:
@@ -342,6 +437,12 @@ def detect_guizang_capability(request: str) -> str | None:
     return _detect_alias_capability(request, GUIZANG_CAPABILITY_ALIASES)
 
 
+def detect_gbro_capability(request: str) -> str | None:
+    """Return gbro's fixed 3:4 prompt capability when explicitly selected."""
+
+    return "cover-prompt-3x4" if _gbro_signal(request) else None
+
+
 def _is_generic_xhs_request(request: str) -> bool:
     """Return True for a generic Xiaohongshu request without a style choice."""
 
@@ -357,6 +458,8 @@ def _explicit_dependency(request: str, dependencies: Mapping[str, Mapping[str, A
     """Return an explicitly named registered dependency in registry order."""
 
     for dependency in dependencies.values():
+        if _is_prompt_enhancer_dependency(dependency):
+            continue
         if _target_skill_signal(request, dependency):
             return dependency
         if dependency.get("skill_id") == GUIZANG_SKILL_ID and _guizang_signal(request):
@@ -374,6 +477,8 @@ def _capability_for_dependency(request: str, dependency: Mapping[str, Any]) -> s
         return detect_capability(request) or None
     if skill_id == GUIZANG_SKILL_ID:
         return detect_guizang_capability(request) or "xhs-social-cards"
+    if skill_id == GBRO_SKILL_ID:
+        return "cover-prompt-3x4"
     return str(dependency["capabilities"][0]) if dependency.get("capabilities") else None
 
 
@@ -441,6 +546,20 @@ def detect_operation(request: str) -> str:
     return "unspecified"
 
 
+def _requested_aspect_ratio(request: str) -> str | None:
+    """Extract an explicitly requested common aspect ratio, if present."""
+
+    match = re.search(r"(?<!\d)(\d+)\s*[:：x×]\s*(\d+)(?!\d)", request.casefold())
+    if match:
+        return f"{match.group(1)}:{match.group(2)}"
+    text = request.casefold()
+    if re.search(r"横版|横屏|landscape", text):
+        return "16:9"
+    if re.search(r"方图|正方形|square", text):
+        return "1:1"
+    return None
+
+
 def model_gate(
     model: str | None = None,
     *,
@@ -458,6 +577,7 @@ def model_gate(
         "requested_model": model,
         "recognized_gpt_image_2": recognized,
         "explicitly_confirmed": confirmed,
+        "applies": True,
         "direct_generation_allowed": direct_allowed,
         "delivery": "direct-generation" if direct_allowed else "prompt-package",
         "required_model": "gpt-image-2",
@@ -477,7 +597,7 @@ def _model_gate_for_dependency(
     explicitly_confirmed: bool,
     request: str,
 ) -> dict[str, Any]:
-    """Apply the GPT Image 2 gate only to the Everett upstream."""
+    """Apply the GPT Image 2 gate to a target dependency when required."""
 
     if dependency is not None and dependency.get("requires_gpt_image_2", False):
         return model_gate(model, explicitly_confirmed=explicitly_confirmed, request=request)
@@ -485,6 +605,7 @@ def _model_gate_for_dependency(
         "requested_model": model,
         "recognized_gpt_image_2": None,
         "explicitly_confirmed": explicitly_confirmed,
+        "applies": False,
         "direct_generation_allowed": True,
         "delivery": "direct-generation",
         "required_model": None,
@@ -492,6 +613,34 @@ def _model_gate_for_dependency(
         "applies": False,
         "reason": "target dependency has no GPT Image 2 gate",
     }
+
+
+def _model_gate_for_route(
+    dependency: Mapping[str, Any] | None,
+    prompt_enhancer: Mapping[str, Any] | None,
+    model: str | None,
+    *,
+    explicitly_confirmed: bool,
+    request: str,
+) -> dict[str, Any]:
+    """Apply the model gate when either the target or enhancer requires it."""
+
+    required_by: list[str] = []
+    for candidate in (dependency, prompt_enhancer):
+        if candidate is not None and candidate.get("requires_gpt_image_2", False):
+            required_by.append(str(candidate["skill_id"]))
+    if required_by:
+        gate = model_gate(model, explicitly_confirmed=explicitly_confirmed, request=request)
+        gate["required_by"] = required_by
+        return gate
+    gate = _model_gate_for_dependency(
+        dependency,
+        model,
+        explicitly_confirmed=explicitly_confirmed,
+        request=request,
+    )
+    gate["required_by"] = []
+    return gate
 
 
 def _dependency_report(
@@ -512,22 +661,13 @@ def _dependency_report(
     if dependency_root is None:
         return report
     root = dependency_root.expanduser().resolve(strict=False)
-    skill_name = frontmatter_name(root / "SKILL.md") if (root / "SKILL.md").is_file() else None
-    valid = root.is_dir() and skill_name == dependency["skill_id"]
+    location = inspect_dependency_location(dependency, root)
+    valid = bool(location["valid"])
     report["installed"] = valid
     report["available"] = valid
     report["status"] = "installed" if valid else ("invalid" if root.exists() else "missing")
     report["installed_location"] = str(root) if valid else None
-    report["locations"] = [
-        {
-            "path": str(root),
-            "exists": root.is_dir(),
-            "skill_md": (root / "SKILL.md").is_file(),
-            "name": skill_name,
-            "name_match": skill_name == dependency["skill_id"],
-            "valid": valid,
-        }
-    ]
+    report["locations"] = [location]
     report["source"] = dependency_source_url(dependency)
     report["install"] = dependency_install_info(dependency)
     report["root_path"] = is_root_path(str(dependency["path"]))
@@ -599,6 +739,17 @@ def _character_reference_contract(
                 "chain_anchor_order": None,
             },
         )
+    if policy == "gbro-cover-prompt":
+        return (
+            "character_identity",
+            "identity reference only; not a human-face reference",
+            {
+                "character_reference_stage": "primary",
+                "face_reference": False,
+                "prompt_identity_injection": True,
+                "character_identity_must_not_be_reinterpreted_as_real_person": True,
+            },
+        )
     return (
         "character_identity",
         "identity reference only",
@@ -617,6 +768,23 @@ def _reference_contract(dependency: Mapping[str, Any] | None) -> dict[str, Any]:
             "first_generated_output_becomes_chain_anchor_for": "subsequent_outputs",
             "all_selected_original_assets_required_for_first_output": True,
             "original_assets_must_not_be_chain_anchors": True,
+        }
+    if policy == "gbro-cover-prompt":
+        return {
+            "policy": policy,
+            "asset_order": "selected_original_character_assets_first",
+            "identity_reference_only": True,
+            "face_reference_semantics": False,
+            "preserve_identity_fields": [
+                "facial features",
+                "body proportions",
+                "clothing",
+                "identity colors",
+                "tail or other registered silhouette anchors",
+            ],
+            "upstream_reference_semantics": (
+                "do not call Rongbao character assets human-face references; keep each IP separate"
+            ),
         }
     return {"policy": policy}
 
@@ -741,6 +909,7 @@ def route_request(
     model: str | None = None,
     model_confirmed: bool = False,
     dependency_root: Path | None = None,
+    prompt_enhancer_root: Path | None = None,
     environment: Mapping[str, str] | None = None,
     home: Path | None = None,
 ) -> dict[str, Any]:
@@ -749,7 +918,15 @@ def route_request(
     dependencies = _load_dependencies_by_id()
     signal = _registered_character_signal(request)
     dependency, capability = _select_target(request, dependencies)
+    prompt_enhancer = _select_prompt_enhancer(request, dependencies)
     operation = detect_operation(request)
+    requested_aspect_ratio = _requested_aspect_ratio(request)
+    gbro_selected = dependency is not None and str(dependency["skill_id"]) == GBRO_SKILL_ID
+    gbro_aspect_compatible = (
+        not gbro_selected
+        or requested_aspect_ratio is None
+        or requested_aspect_ratio == "3:4"
+    )
     adapter_signal = bool(signal["adapter_signal"])
     style_selection_required = (
         dependency is None
@@ -785,6 +962,12 @@ def route_request(
         inject = True
         reason = "ordinary article illustration remains native"
 
+    if prompt_enhancer is not None:
+        reason = (
+            f"{reason}; explicit GPT Image 2 style-library request attaches a prompt enhancer "
+            "without replacing the base target"
+        )
+
     character_inputs = resolve_character_inputs(request) if inject else []
     if dependency is None:
         dependency_report = {
@@ -805,9 +988,29 @@ def route_request(
             environment=environment,
             home=home,
         )
+    prompt_enhancer_report = None
+    if prompt_enhancer is not None:
+        enhancer_root = prompt_enhancer_root
+        if enhancer_root is None and dependency is None:
+            enhancer_root = dependency_root
+        prompt_enhancer_report = _dependency_report(
+            prompt_enhancer,
+            dependency_root=enhancer_root,
+            environment=environment,
+            home=home,
+        )
+        prompt_enhancer_report["selected"] = True
+        prompt_enhancer_report["base_target_skill_id"] = (
+            str(dependency["skill_id"]) if dependency is not None else None
+        )
+        prompt_enhancer_report["output_fields"] = list(PROMPT_ENHANCER_OUTPUTS)
+        prompt_enhancer_report["identity_policy"] = (
+            "character references remain identity-only inputs; never use them as style references"
+        )
     dependency_report["reference_requirements"] = (dependency or {}).get("reference_inputs", {})
-    selected_model_gate = _model_gate_for_dependency(
+    selected_model_gate = _model_gate_for_route(
         dependency,
+        prompt_enhancer,
         model,
         explicitly_confirmed=model_confirmed,
         request=request,
@@ -818,6 +1021,51 @@ def route_request(
         "mode": mode,
         "target_skill_id": target_skill,
         "target_capability": capability,
+        "delivery_mode": (
+            "prompt-package"
+            if dependency is not None and dependency.get("output_mode") == "prompt-only"
+            else "target-skill"
+        ),
+        "prompt_only": bool(
+            dependency is not None and dependency.get("output_mode") == "prompt-only"
+        ),
+        "aspect_ratio": {
+            "requested": requested_aspect_ratio,
+            "required": (
+                str(dependency.get("fixed_aspect_ratio"))
+                if gbro_selected and dependency is not None
+                else None
+            ),
+            "compatible": gbro_aspect_compatible,
+            "warning": (
+                "gbro-cover-design 固定 3:4 竖版；请移除当前画幅要求，或改用 Dongfang/Baoyu 生成其他画幅。"
+                if gbro_selected and not gbro_aspect_compatible
+                else None
+            ),
+        },
+        "prompt_package": (
+            {
+                "output_mode": "prompt-only",
+                "fixed_aspect_ratio": "3:4",
+                "safe_area": "关键元素距四边至少约 10%",
+                "briefing_rounds": 3,
+                "layout_style_count": 10,
+                "title_suggestions": "target Skill derives 1-3 concise title candidates from the source content",
+                "reference_semantics": (
+                    "selected original IP images come first and are identity-only; never treat them as a human-face reference"
+                ),
+                "required_sections": [
+                    "3:4 vertical composition",
+                    "selected layout style",
+                    "title and text hierarchy",
+                    "foreground/midground/background spatial relations",
+                    "reference-image mapping",
+                    "Chinese text verification reminder",
+                ],
+            }
+            if gbro_selected
+            else None
+        ),
         "style_selection_required": style_selection_required,
         "style_candidates": (
             [
@@ -848,6 +1096,32 @@ def route_request(
         "reference_policy": (dependency or {}).get("reference_policy", "native"),
         "reference_contract": _reference_contract(dependency),
         "dependency": dependency_report,
+        "prompt_enhancer": prompt_enhancer_report,
+        "prompt_enhancement": {
+            "enabled": prompt_enhancer_report is not None,
+            "skill_id": (
+                str(prompt_enhancer["skill_id"]) if prompt_enhancer is not None else None
+            ),
+            "base_target_unchanged": True,
+            "output_fields": list(PROMPT_ENHANCER_OUTPUTS),
+            "role": "prompt_enhancer",
+            "style_library_controls": [
+                "visual medium",
+                "information hierarchy",
+                "text constraints",
+                "prompt controllability",
+            ],
+            "target_skill_controls": [
+                "canvas and aspect ratio",
+                "layout and delivery path",
+                "target-specific generation contract",
+            ],
+            "character_identity_controls": [
+                "selected original reference images",
+                "identity protocols",
+                "character clothing and colors",
+            ],
+        },
         "model_gate": selected_model_gate,
     }
     references = assemble_reference_inputs(route, dependency_root=dependency_root)
@@ -862,22 +1136,30 @@ def route_request(
     }
     model_ready = (
         operation != "create"
-        or not bool((dependency or {}).get("requires_gpt_image_2", False))
+        or not bool(
+            (dependency or {}).get("requires_gpt_image_2", False)
+            or (prompt_enhancer or {}).get("requires_gpt_image_2", False)
+        )
         or route["model_gate"]["direct_generation_allowed"]
-        or target_skill is None
     )
+    enhancer_ready = prompt_enhancer_report is None or bool(prompt_enhancer_report["installed"])
     route["generation_ready"] = bool(
         not style_selection_required
+        and not (gbro_selected and not gbro_aspect_compatible)
+        and not (gbro_selected and dependency.get("output_mode") == "prompt-only")
         and (
-        target_skill is None
-        or (
-            model_ready
-            and dependency_report["installed"]
+            enhancer_ready
+            and model_ready
             and (
-                not inject
-                or all(record["exists"] for record in references["inputs"])
+                target_skill is None
+                or (
+                    dependency_report["installed"]
+                    and (
+                        not inject
+                        or all(record["exists"] for record in references["inputs"])
+                    )
+                )
             )
-        )
         )
     )
     return route

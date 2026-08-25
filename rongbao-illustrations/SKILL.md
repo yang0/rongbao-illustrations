@@ -46,7 +46,7 @@ description: 生成可按名称选择绒宝、牙仔或阿龅的中文正文配�
 - `references/qa-checklist.md`：生成后检查和迭代规则。
 - `references/design-routing.md`：意图路由、create|prompt 透传、缺失依赖确认和扩展方式。
 - `references/design-dependencies.json`：v1 设计依赖注册表；先解析当前 Skill 根目录，再运行 `<skill-root>/scripts/doctor.py --json` 只读检查可用性。
-- `scripts/design_router.py`：原生、Dongfang、Everett 与 Baoyu 能力路由、`create|prompt` 识别、目标相关模型门禁和有序图片输入装配。
+- `scripts/design_router.py`：原生、Dongfang、Everett、Baoyu、Guizang 与 gbro 能力路由、`create|prompt` 识别、目标相关模型门禁和有序图片输入装配。
 - `scripts/dependency_utils.py`：依赖注册表校验、`install_name`/根路径解析、安装信息和只读位置探测。
 - `assets/rongbao.png`：绒宝角色参考图；只读取身份特征，不复制其 3D 绒毛材质、米色背景或原始姿态。
 - `assets/yazai.png`：牙仔角色参考图；只在选择牙仔时读取身份特征，媒介由目标 Skill 决定。
@@ -156,6 +156,38 @@ $skill-installer install --repo JimLiu/baoyu-skills --path skills/baoyu-article-
 ```text
 $skill-installer install --repo op7418/guizang-social-card-skill --path . --name guizang-social-card-skill --ref main
 ```
+
+### 可选 GPT Image 2 Style Library 提示词增强层
+
+注册表中的 `gpt-image-2-style-library` 指向 [freestylefly/awesome-gpt-image-2](https://github.com/freestylefly/awesome-gpt-image-2) 的 `agents/skills/gpt-image-2-style-library`，固定使用 `main`，上游声明 MIT。它是按需提示词增强层，不是独立版式 Skill，也不替换 Rongbao、Dongfang、Everett、Baoyu 或 Guizang 的基础目标。
+
+只有用户明确写“GPT Image 2 风格库 / 模板库增强 / 按模板增强提示词”或点名 `gpt-image-2-style-library` 时，才在既有 `target_skill_id` 旁设置 `prompt_enhancer`。增强层输出模板名、风格/场景标签、案例 ID、结构化提示词和负面约束；目标 Skill 继续决定画幅、版式和交付路径，角色原图与身份协议继续控制牙仔、绒宝和阿龅的身份，不能被当作风格参考。
+
+缺失时只展示来源、MIT 许可证、能力和安装参数，并请求一次确认：
+
+```text
+$skill-installer install --repo freestylefly/awesome-gpt-image-2 --path agents/skills/gpt-image-2-style-library --name gpt-image-2-style-library --ref main
+```
+
+使用 `create` 时，只有运行环境明确确认 GPT Image 2 才允许直接使用增强结果生图；否则交付完整增强 prompt package、角色身份协议路径和参考图顺序。普通请求没有显式增强信号时维持原有路由，不被模板库改写。
+
+### 可选 gbro Cover Design 3:4 封面提示词 Skill
+
+注册表中的 `gbro-cover-design` 指向 [pyang5166/gbro-cover-design](https://github.com/pyang5166/gbro-cover-design)，使用仓库根目录和 `main`，上游声明 MIT。它固定输出 3:4 竖版封面提示词，保留三轮提问流程、10 种构图模板、标题建议和安全区约束；它只产出提示词包，不直接调用图像模型，也不替换 Dongfang 或 Baoyu 的普通封面路由。
+
+只有用户显式写出 `gbro`、`gbro-cover-design`、“gbro 封面”、“三轮提问封面”或“10 种构图风格封面”时才路由到它。普通“做一张封面”、横版封面和显式 Baoyu 封面继续交给原有目标 Skill。gbro 请求固定 3:4；用户明确要求 16:9、4:3 或 1:1 时，保留 gbro 的选择但返回画幅不兼容警告，建议改用 Dongfang/Baoyu，不静默裁切。
+
+有牙仔、绒宝、阿龅、`这个IP`、`带IP` 或 `$rongbao-illustrations` 信号时，先运行角色路由器，将所有选中角色的原始 `asset_path` 按注册表顺序放在输入最前；每张图在提示词中标成对应 IP 的 `identity reference only`，明确不是上游所说的真人脸部参考，不改变五官、体型、服饰、身份色和尾巴等身份锚点。多角色分别保持身份并共同参与封面叙事，不能融合成一个角色。没有 Rongbao IP 信号时保持 gbro 的 `direct-target` 原生行为，不注入牙仔。
+
+gbro 的执行结果始终是 `prompt-package`：`prompt` 和 `create` 都只交付完整提示词、标题建议、选定构图风格、空间关系、参考图映射和中文文字复核提醒；Rongbao 不替上游直接生图。实际生成若由用户自行执行，按 gbro 上游契约完整使用其 `references/`，不可只复制 `SKILL.md`。
+
+缺失时只展示来源、MIT、能力和一次性安装确认；确认后交给系统 `$skill-installer`：
+
+```text
+$skill-installer install --repo pyang5166/gbro-cover-design --path . --name gbro-cover-design --ref main
+```
+
+doctor 会同时检查安装目录的 `SKILL.md` 与必需的 `references/`；本项目不复制 gbro 源码、模板、示例或素材。
 
 ### 5. 原生检查与迭代
 

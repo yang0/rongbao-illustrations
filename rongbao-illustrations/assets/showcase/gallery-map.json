@@ -256,6 +256,30 @@
       "target_skill": "baoyu-comic",
       "image_path": "rongbao-illustrations/assets/showcase/baoyu-color-comic.png",
       "image_source": "project-generated style variant; not a Baoyu asset"
+    },
+    {
+      "group": "Rongbao composition",
+      "style": "真实场景 + 手绘牙仔",
+      "aspect_ratio": "4:3",
+      "target_skill": "rongbao-illustrations",
+      "image_path": "rongbao-illustrations/assets/showcase/real-scene-handdrawn-yazai.png",
+      "image_source": "project-generated composition demo; not an upstream asset"
+    },
+    {
+      "group": "Rongbao composition",
+      "style": "3D 动画电影感封面",
+      "aspect_ratio": "16:9",
+      "target_skill": "rongbao-illustrations",
+      "image_path": "rongbao-illustrations/assets/showcase/yazai-3d-animated-cover.png",
+      "image_source": "project-generated cover demo; not an upstream asset"
+    },
+    {
+      "group": "gbro",
+      "style": "阿龅机器人降价封面",
+      "aspect_ratio": "3:4",
+      "target_skill": "gbro-cover-design",
+      "image_path": "rongbao-illustrations/assets/showcase/gbro-abao-robot-price.png",
+      "image_source": "project-generated gbro composition demo; not a gbro asset"
     }
   ]
 }

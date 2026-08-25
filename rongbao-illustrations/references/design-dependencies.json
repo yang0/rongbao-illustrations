@@ -130,6 +130,47 @@
         "wechat-cover-pair",
         "live-photo-card"
       ]
+    },
+    {
+      "skill_id": "gpt-image-2-style-library",
+      "repo": "freestylefly/awesome-gpt-image-2",
+      "path": "agents/skills/gpt-image-2-style-library",
+      "install_name": "gpt-image-2-style-library",
+      "ref": "main",
+      "optional": true,
+      "license": "MIT",
+      "maintainer": "freestylefly",
+      "purpose": "prompt-enhancement",
+      "reference_policy": "prompt-enhancer",
+      "requires_gpt_image_2": true,
+      "capabilities": [
+        "prompt-enhancement",
+        "style-template-matching",
+        "structured-prompt",
+        "negative-constraints"
+      ]
+    },
+    {
+      "skill_id": "gbro-cover-design",
+      "repo": "pyang5166/gbro-cover-design",
+      "path": ".",
+      "install_name": "gbro-cover-design",
+      "ref": "main",
+      "optional": true,
+      "license": "MIT",
+      "maintainer": "pyang5166",
+      "reference_policy": "gbro-cover-prompt",
+      "output_mode": "prompt-only",
+      "fixed_aspect_ratio": "3:4",
+      "required_paths": [
+        "references"
+      ],
+      "capabilities": [
+        "cover-prompt-3x4",
+        "ten-layout-styles",
+        "three-round-briefing",
+        "character-reference-prompt"
+      ]
     }
   ]
 }

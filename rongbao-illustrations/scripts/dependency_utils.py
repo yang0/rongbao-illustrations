@@ -78,6 +78,49 @@ def dependency_install_info(dependency: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def dependency_required_paths(dependency: Mapping[str, Any]) -> list[str]:
+    """Return repository-relative paths required for a valid installation.
+
+    Most registered Skills only need ``SKILL.md``.  A few upstream projects
+    document supporting directories that are part of their usable package;
+    those can opt into the same read-only probe with ``required_paths``.
+    """
+
+    values = dependency.get("required_paths", [])
+    return [str(value) for value in values if isinstance(value, str) and value.strip()]
+
+
+def inspect_dependency_location(
+    dependency: Mapping[str, Any],
+    candidate: Path,
+) -> dict[str, Any]:
+    """Inspect one candidate installation directory without mutating it."""
+
+    skill_id = str(dependency["skill_id"])
+    required_paths = dependency_required_paths(dependency)
+    skill_file = candidate / "SKILL.md"
+    skill_name = frontmatter_name(skill_file) if skill_file.is_file() else None
+    required_status = {
+        relative_path: (candidate / relative_path).exists()
+        for relative_path in required_paths
+    }
+    required_paths_present = all(required_status.values())
+    exists = candidate.is_dir()
+    name_match = skill_name == skill_id
+    valid = exists and skill_file.is_file() and name_match and required_paths_present
+    return {
+        "path": str(candidate),
+        "exists": exists,
+        "skill_md": skill_file.is_file(),
+        "name": skill_name,
+        "name_match": name_match,
+        "required_paths": required_paths,
+        "required_paths_status": required_status,
+        "required_paths_present": required_paths_present,
+        "valid": valid,
+    }
+
+
 def validate_dependency(dependency: Any, index: int = 0) -> list[str]:
     """Return schema errors for one dependency record."""
 
@@ -118,6 +161,27 @@ def validate_dependency(dependency: Any, index: int = 0) -> list[str]:
     optional = dependency.get("optional", False)
     if not isinstance(optional, bool):
         errors.append("optional must be a boolean when provided")
+
+    purpose = dependency.get("purpose")
+    if purpose is not None and (not isinstance(purpose, str) or not purpose.strip()):
+        errors.append("purpose must be a non-empty string when provided")
+
+    output_mode = dependency.get("output_mode")
+    if output_mode is not None and (not isinstance(output_mode, str) or not output_mode.strip()):
+        errors.append("output_mode must be a non-empty string when provided")
+
+    fixed_aspect_ratio = dependency.get("fixed_aspect_ratio")
+    if fixed_aspect_ratio is not None and (
+        not isinstance(fixed_aspect_ratio, str) or not fixed_aspect_ratio.strip()
+    ):
+        errors.append("fixed_aspect_ratio must be a non-empty string when provided")
+
+    required_paths = dependency.get("required_paths")
+    if required_paths is not None and (
+        not isinstance(required_paths, list)
+        or not all(isinstance(path_item, str) and path_item.strip() for path_item in required_paths)
+    ):
+        errors.append("required_paths must be a list of non-empty strings when provided")
 
     reference_inputs = dependency.get("reference_inputs")
     if reference_inputs is not None:
@@ -219,21 +283,7 @@ def inspect_dependency(
     for candidate in dependency_candidate_paths(
         dependency, skill_root=skill_root, environment=environment, home=home
     ):
-        skill_file = candidate / "SKILL.md"
-        skill_name = frontmatter_name(skill_file) if skill_file.is_file() else None
-        exists = candidate.is_dir()
-        name_match = skill_name == skill_id
-        valid = exists and skill_file.is_file() and name_match
-        locations.append(
-            {
-                "path": str(candidate),
-                "exists": exists,
-                "skill_md": skill_file.is_file(),
-                "name": skill_name,
-                "name_match": name_match,
-                "valid": valid,
-            }
-        )
+        locations.append(inspect_dependency_location(dependency, candidate))
     valid_locations = [location for location in locations if location["valid"]]
     any_present = any(location["exists"] or location["skill_md"] for location in locations)
     installed = bool(valid_locations)
@@ -248,6 +298,10 @@ def inspect_dependency(
         "capabilities": dependency["capabilities"],
         "license": dependency.get("license"),
         "maintainer": dependency.get("maintainer"),
+        "purpose": dependency.get("purpose"),
+        "output_mode": dependency.get("output_mode"),
+        "fixed_aspect_ratio": dependency.get("fixed_aspect_ratio"),
+        "required_paths": dependency_required_paths(dependency),
         "reference_policy": dependency.get("reference_policy", "direct-character"),
         "requires_gpt_image_2": bool(dependency.get("requires_gpt_image_2", False)),
         "optional": bool(dependency.get("optional", False)),
