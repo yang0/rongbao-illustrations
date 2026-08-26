@@ -34,7 +34,7 @@ BAOYU_DEPENDENCIES = [
 GUIZANG = DEPENDENCIES_BY_ID["guizang-social-card-skill"]
 GPT_IMAGE_2_STYLE_LIBRARY = DEPENDENCIES_BY_ID["gpt-image-2-style-library"]
 GBRO = DEPENDENCIES_BY_ID["gbro-cover-design"]
-PNG_BYTES = (SKILL_DIR / "assets" / "rongbao.png").read_bytes()
+REFERENCE_BYTES = (SKILL_DIR / "assets" / "rongbao.webp").read_bytes()
 
 
 def write_upstream_fixture(root: Path, *, skill_name: str = "ip-illustration-character-system") -> None:
@@ -45,7 +45,7 @@ def write_upstream_fixture(root: Path, *, skill_name: str = "ip-illustration-cha
     for relative_path in UPSTREAM["reference_inputs"]["style"] + UPSTREAM["reference_inputs"]["layout"]:
         path = root / relative_path
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(PNG_BYTES)
+        path.write_bytes(REFERENCE_BYTES)
 
 
 def write_skill_fixture(root: Path, skill_name: str) -> None:
@@ -410,7 +410,7 @@ def test_guizang_routing_and_style_selection() -> None:
         assert injected["target_skill_id"] == GUIZANG["skill_id"]
         assert injected["target_capability"] == "swiss-social-card"
         assert injected["characters"] == ["yazai"]
-        assert [Path(path).name for path in injected["referenced_image_paths"]] == ["yazai.png"]
+        assert [Path(path).name for path in injected["referenced_image_paths"]] == ["yazai.webp"]
         assert injected["reference_inputs"][0]["identity_reference_path"].endswith(
             "yazai-identity.md"
         )
@@ -470,7 +470,7 @@ def test_routing_and_input_order() -> None:
         assert default_ip_cover["target_skill_id"] == DONGFANG["skill_id"]
         assert default_ip_cover["characters"] == ["yazai"]
         assert [Path(path).name for path in default_ip_cover["referenced_image_paths"]] == [
-            "yazai.png"
+            "yazai.webp"
         ]
 
         rongbao_cover = route_request(
@@ -502,8 +502,8 @@ def test_routing_and_input_order() -> None:
             assert routed["target_capability"] == capability
             assert routed["characters"] == ["rongbao", "yazai"]
             assert [Path(path).name for path in routed["referenced_image_paths"]] == [
-                "rongbao.png",
-                "yazai.png",
+                "rongbao.webp",
+                "yazai.webp",
             ]
             if skill_id == "baoyu-comic":
                 assert [item["role"] for item in routed["reference_inputs"]] == [
@@ -568,7 +568,7 @@ def test_routing_and_input_order() -> None:
         assert default_ip_baoyu["target_skill_id"] == "baoyu-comic"
         assert default_ip_baoyu["characters"] == ["yazai"]
         assert [Path(path).name for path in default_ip_baoyu["referenced_image_paths"]] == [
-            "yazai.png"
+            "yazai.webp"
         ]
 
         ordinary_article = route_request("生成一张普通文章配图")
@@ -623,7 +623,7 @@ def test_routing_and_input_order() -> None:
         assert default_ip_upstream["mode"] == "upstream"
         assert default_ip_upstream["target_skill_id"] == UPSTREAM["skill_id"]
         assert default_ip_upstream["characters"] == ["yazai"]
-        assert Path(default_ip_upstream["referenced_image_paths"][0]).name == "yazai.png"
+        assert Path(default_ip_upstream["referenced_image_paths"][0]).name == "yazai.webp"
 
         upstream = route_request(
             "Use $rongbao-illustrations create 用绒宝和牙仔做萌粒风格 3:4 信息图",
@@ -652,7 +652,7 @@ def test_routing_and_input_order() -> None:
         assert yazai["mode"] == "upstream"
         assert yazai["characters"] == ["yazai"]
         assert "style_ref_03" in " ".join(item["relative_path"] for item in yazai["reference_omissions"])
-        assert all("rongbao.png" not in path for path in yazai["referenced_image_paths"])
+        assert all("rongbao.webp" not in path for path in yazai["referenced_image_paths"])
         assert yazai["model_gate"]["direct_generation_allowed"] is True
         assert yazai["operation"] == "prompt"
 
@@ -776,8 +776,8 @@ def test_gbro_explicit_prompt_routing_and_identity_order() -> None:
         assert injected["target_capability"] == "cover-prompt-3x4"
         assert injected["characters"] == ["rongbao", "abao"]
         assert [Path(path).name for path in injected["referenced_image_paths"]] == [
-            "rongbao.png",
-            "abao.png",
+            "rongbao.webp",
+            "abao.webp",
         ]
         assert [item["role"] for item in injected["reference_inputs"]] == [
             "character_identity",

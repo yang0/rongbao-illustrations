@@ -10,18 +10,18 @@
 
 | 高密度爆款封面 · 16:9 | 真实场景 + 手绘角色 · 4:3 | 3D 动画封面 · 16:9 |
 | --- | --- | --- |
-| ![Dongfang 高密度封面](rongbao-illustrations/assets/showcase/dongfang-landscape-cover.png) | ![真实场景与手绘牙仔](rongbao-illustrations/assets/showcase/real-scene-handdrawn-yazai.png) | ![牙仔 3D 动画封面](rongbao-illustrations/assets/showcase/yazai-3d-animated-cover.png) |
+| ![Dongfang 高密度封面](rongbao-illustrations/assets/showcase/dongfang-landscape-cover.webp) | ![真实场景与手绘牙仔](rongbao-illustrations/assets/showcase/real-scene-handdrawn-yazai.webp) | ![牙仔 3D 动画封面](rongbao-illustrations/assets/showcase/yazai-3d-animated-cover.webp) |
 
 ## IP 角色
 
 | 牙仔 `yazai` · 默认 | 绒宝 `rongbao` | 阿龅 `abao` |
 | --- | --- | --- |
-| ![牙仔原图](rongbao-illustrations/assets/yazai.png) | ![绒宝原图](rongbao-illustrations/assets/rongbao.png) | ![阿龅原图](rongbao-illustrations/assets/abao.png) |
+| ![牙仔原图](rongbao-illustrations/assets/yazai.webp) | ![绒宝原图](rongbao-illustrations/assets/rongbao.webp) | ![阿龅原图](rongbao-illustrations/assets/abao.webp) |
 | 未指定角色时使用。 [身份协议](rongbao-illustrations/references/yazai-identity.md) | 写“绒宝”或 `rongbao` 激活。 [身份协议](rongbao-illustrations/references/rongbao-identity.md) | 写“阿龅”或 `abao` 激活。 [身份协议](rongbao-illustrations/references/abao-identity.md) |
 
 | 小美 `xiaomei` · 已确认个人 IP |
 | --- |
-| ![小美原图](rongbao-illustrations/assets/xiaomei.png) |
+| ![小美原图](rongbao-illustrations/assets/xiaomei.webp) |
 | 写“小美”或 `xiaomei` 激活。服装可变，身份锚点见 [身份协议](rongbao-illustrations/references/xiaomei-identity.md)。 |
 
 角色名可以使用中文或英文别名；同时写出多个名字时，所有角色分别读取自己的原图并共同参与画面，不会混合成一个角色。
@@ -30,7 +30,7 @@
 
 | 小美：从真人照片到可复用 IP |
 | --- |
-| ![小美个人 IP 制作流程](rongbao-illustrations/assets/showcase/xiaomei-process-collage.png) |
+| ![小美个人 IP 制作流程](rongbao-illustrations/assets/showcase/xiaomei-process-collage.webp) |
 | **照片授权** → 选择 IP-01~06 风格 → 读取角色身份参考 → 生成单人原型 → **用户确认** → 可选注册 Rongbao → 用于正文、封面、海报。原图只控制身份；IP 风格与目标 Skill 负责媒介、构图和版式。 |
 
 ```text
@@ -44,47 +44,47 @@ Use $rongbao-illustrations create 用小美原图按 IP-03「粉蜡笔撞色肖�
 
 | Rongbao 原生正文 · 16:9 | Baoyu 文章配图 · 16:9 | Baoyu 知识漫画 · 4:3 |
 | --- | --- | --- |
-| ![原生正文配图](examples/images/01-two-breakpoints.png) | ![Baoyu 文章配图](rongbao-illustrations/assets/showcase/baoyu-article-illustration.png) | ![Baoyu 彩色知识漫画](rongbao-illustrations/assets/showcase/baoyu-color-comic.png) |
+| ![原生正文配图](examples/images/01-two-breakpoints.webp) | ![Baoyu 文章配图](rongbao-illustrations/assets/showcase/baoyu-article-illustration.webp) | ![Baoyu 彩色知识漫画](rongbao-illustrations/assets/showcase/baoyu-color-comic.webp) |
 
 | Baoyu 漫画封面 · 4:3 | Baoyu 信息图 · 4:3 | Everett 萌粒插图 · 3:4 |
 | --- | --- | --- |
-| ![知识漫画封面](comic/weichen-x-growth-sop/00-cover-weichen-x-growth-sop.png) | ![Baoyu 信息图](rongbao-illustrations/assets/showcase/baoyu-infographic.png) | ![Everett 萌粒小插图](rongbao-illustrations/assets/showcase/everett-mini-article-illustration.png) |
+| ![知识漫画封面](comic/weichen-x-growth-sop/00-cover-weichen-x-growth-sop.webp) | ![Baoyu 信息图](rongbao-illustrations/assets/showcase/baoyu-infographic.webp) | ![Everett 萌粒小插图](rongbao-illustrations/assets/showcase/everett-mini-article-illustration.webp) |
 
 ### 封面、海报与方图
 
 | Dongfang 高密度横版 · 16:9 | Dongfang 非中式高彩海报 · 16:9 | Dongfang 彩色水墨 · 16:9 |
 | --- | --- | --- |
-| ![Dongfang 横版封面](rongbao-illustrations/assets/showcase/dongfang-landscape-cover.png) | ![Dongfang 非中式高彩色海报](rongbao-illustrations/assets/showcase/dongfang-non-chinese-color-poster.png) | ![Dongfang 彩色水墨封面](rongbao-illustrations/assets/showcase/dongfang-color-ink-cover.png) |
+| ![Dongfang 横版封面](rongbao-illustrations/assets/showcase/dongfang-landscape-cover.webp) | ![Dongfang 非中式高彩色海报](rongbao-illustrations/assets/showcase/dongfang-non-chinese-color-poster.webp) | ![Dongfang 彩色水墨封面](rongbao-illustrations/assets/showcase/dongfang-color-ink-cover.webp) |
 
 | Dongfang 竖版海报 · 3:4 | Dongfang 方图 · 1:1 | gbro 阿龅封面 · 3:4 |
 | --- | --- | --- |
-| ![Dongfang 竖版海报](rongbao-illustrations/assets/showcase/dongfang-portrait-poster.png) | ![Dongfang 方图](rongbao-illustrations/assets/showcase/dongfang-square-graphic.png) | ![gbro 阿龅机器人降价封面](rongbao-illustrations/assets/showcase/gbro-abao-robot-price.png) |
+| ![Dongfang 竖版海报](rongbao-illustrations/assets/showcase/dongfang-portrait-poster.webp) | ![Dongfang 方图](rongbao-illustrations/assets/showcase/dongfang-square-graphic.webp) | ![gbro 阿龅机器人降价封面](rongbao-illustrations/assets/showcase/gbro-abao-robot-price.webp) |
 
 ### 社交卡、信息图与幻灯片
 
 | Guizang 瑞士风 · 3:4 | Guizang 电子杂志风 · 3:4 | Baoyu 小红书组图 · 3:4 |
 | --- | --- | --- |
-| ![Guizang 瑞士风社交卡](rongbao-illustrations/assets/showcase/guizang-swiss-social-card.png) | ![Guizang 电子杂志风社交卡](rongbao-illustrations/assets/showcase/guizang-editorial-social-card.png) | ![Baoyu 小红书图片](rongbao-illustrations/assets/showcase/baoyu-xhs-images.png) |
+| ![Guizang 瑞士风社交卡](rongbao-illustrations/assets/showcase/guizang-swiss-social-card.webp) | ![Guizang 电子杂志风社交卡](rongbao-illustrations/assets/showcase/guizang-editorial-social-card.webp) | ![Baoyu 小红书图片](rongbao-illustrations/assets/showcase/baoyu-xhs-images.webp) |
 
 | Everett 3:4 信息图 · 3:4 | Baoyu 幻灯片 · 16:9 | 阿龅单张贴纸 · 3:4 |
 | --- | --- | --- |
-| ![Everett 信息图](rongbao-illustrations/assets/showcase/everett-article-infographic-3x4.png) | ![Baoyu 幻灯片](rongbao-illustrations/assets/showcase/baoyu-slide-deck.png) | ![阿龅贴纸预览](comic/abao-sticker-preview/abao-sticker-preview.png) |
+| ![Everett 信息图](rongbao-illustrations/assets/showcase/everett-article-infographic-3x4.webp) | ![Baoyu 幻灯片](rongbao-illustrations/assets/showcase/baoyu-slide-deck.webp) | ![阿龅贴纸预览](comic/abao-sticker-preview/abao-sticker-preview.webp) |
 
 ### 角色设定与跨媒介
 
 | Everett 角色锚点 · 3:4 | Everett 彩色角色锚点 · 3:4 | Everett 转面图 · 3:4 |
 | --- | --- | --- |
-| ![Everett 角色锚点](rongbao-illustrations/assets/showcase/everett-character-anchor.png) | ![Everett 彩色角色锚点](rongbao-illustrations/assets/showcase/everett-color-character-anchor.png) | ![Everett 转面图](rongbao-illustrations/assets/showcase/everett-turnaround-sheet.png) |
+| ![Everett 角色锚点](rongbao-illustrations/assets/showcase/everett-character-anchor.webp) | ![Everett 彩色角色锚点](rongbao-illustrations/assets/showcase/everett-color-character-anchor.webp) | ![Everett 转面图](rongbao-illustrations/assets/showcase/everett-turnaround-sheet.webp) |
 
 ### 更多原生正文案例
 
 | 按目的分拣 | 一鱼多吃 | 承接路径 |
 | --- | --- | --- |
-| ![按目的分拣](examples/images/02-sort-by-purpose.png) | ![一鱼多吃](examples/images/03-one-fish-many-uses.png) | ![承接路径](examples/images/04-handoff-path.png) |
+| ![按目的分拣](examples/images/02-sort-by-purpose.webp) | ![一鱼多吃](examples/images/03-one-fish-many-uses.webp) | ![承接路径](examples/images/04-handoff-path.webp) |
 
 | 信息井 | 想法压机 | 内容发酵 |
 | --- | --- | --- |
-| ![信息井](examples/images/05-information-well.png) | ![想法压机](examples/images/06-idea-press.png) | ![内容发酵](examples/images/07-content-fermentation.png) |
+| ![信息井](examples/images/05-information-well.webp) | ![想法压机](examples/images/06-idea-press.webp) | ![内容发酵](examples/images/07-content-fermentation.webp) |
 
 完整图片索引见 [`gallery-map.json`](rongbao-illustrations/assets/showcase/gallery-map.json)，图片说明见 [`showcase/README.md`](rongbao-illustrations/assets/showcase/README.md)。
 

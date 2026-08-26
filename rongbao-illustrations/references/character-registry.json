@@ -9,7 +9,7 @@
         "绒宝",
         "rongbao"
       ],
-      "asset": "assets/rongbao.png",
+      "asset": "assets/rongbao.webp",
       "identity_reference": "references/rongbao-identity.md"
     },
     {
@@ -19,7 +19,7 @@
         "牙仔",
         "yazai"
       ],
-      "asset": "assets/yazai.png",
+      "asset": "assets/yazai.webp",
       "identity_reference": "references/yazai-identity.md"
     },
     {
@@ -29,7 +29,7 @@
         "阿龅",
         "abao"
       ],
-      "asset": "assets/abao.png",
+      "asset": "assets/abao.webp",
       "identity_reference": "references/abao-identity.md"
     },
     {
@@ -39,7 +39,7 @@
         "小美",
         "xiaomei"
       ],
-      "asset": "assets/xiaomei.png",
+      "asset": "assets/xiaomei.webp",
       "identity_reference": "references/xiaomei-identity.md"
     }
   ]

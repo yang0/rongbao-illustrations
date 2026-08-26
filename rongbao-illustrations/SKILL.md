@@ -9,7 +9,7 @@ description: 生成可按名称选择已注册 IP（默认牙仔；含绒宝、�
 
 本 Skill 的原生模式为中文文章设计和生成 16:9 横版正文配图。目标不是做商业插画、PPT 信息图或可爱卡通，而是把文章里的关键判断、流程、结构、状态或隐喻，变成一张清爽、怪诞、有创意、可读但不说明书的手绘解释图。
 
-默认视觉 IP 是“牙仔”：以 `assets/yazai.png` 和 `references/yazai-identity.md` 为身份参考，保留黑白拟人猫、黑色尖耳、头顶毛块、半眯的竖瞳大眼、宽扁脸、两颗小门牙、胡须、长卷尾、白衬衫、黑马甲或黑领结和围裙；在本 Skill 中转译成简洁的黑色手绘线稿与克制平涂色块。牙仔认真做一件荒诞但成立的事，必须参与画面的核心动作，不能只是站在旁边当装饰。绒宝仍保留为显式角色，并遵循 `references/rongbao-identity.md` 的身份协议。
+默认视觉 IP 是“牙仔”：以 `assets/yazai.webp` 和 `references/yazai-identity.md` 为身份参考，保留黑白拟人猫、黑色尖耳、头顶毛块、半眯的竖瞳大眼、宽扁脸、两颗小门牙、胡须、长卷尾、白衬衫、黑马甲或黑领结和围裙；在本 Skill 中转译成简洁的黑色手绘线稿与克制平涂色块。牙仔认真做一件荒诞但成立的事，必须参与画面的核心动作，不能只是站在旁边当装饰。绒宝仍保留为显式角色，并遵循 `references/rongbao-identity.md` 的身份协议。
 
 当用户同时提到具体角色名（绒宝/牙仔/阿龅及其别名）、“这个IP”“该IP”“带IP”等身份信号，或显式调用 `$rongbao-illustrations`，以及封面、竖版海报、方图，或已注册的萌粒/角色锚点/转面/3:4 信息图/贴纸能力时，进入跨设计组合模式：按 `references/design-routing.md` 路由到已注册目标设计 Skill。目标 Skill 决定画幅、构图、材质、光线、文字和输出；本 Skill 只提供已选择角色的身份锚点与角色参考图，不能把正文的白底手绘默认强加给目标 Skill。
 
@@ -29,7 +29,7 @@ description: 生成可按名称选择已注册 IP（默认牙仔；含绒宝、�
 - 需要封面、海报、方图、萌粒、角色锚点、转面图、3:4 信息图、3:4 贴纸页，或 Baoyu 的文章配图、知识漫画、小红书图片、幻灯片时，先运行 `scripts/design_router.py --json`。普通文章配图仍走本 Skill 原生模式；目标 Skill 有角色/IP信号时进入 `upstream` 并注入已选角色，没有信号时进入 `direct-target` 但不注入任何角色图片。
 - 直接调用 `$ip-illustration-character-system` 而没有绒宝/牙仔/阿龅、IP 或 `$rongbao-illustrations` 信号时，不注入任何角色参考图；只透传用户对上游 Skill 的直接请求。
 - 任何实际生图或改图都必须使用真实角色图片输入：先运行路由器读取 `character_inputs`，再对每个 `asset_path` 调用 `view_image`，并把所有已选图片按注册表顺序放入图像工具的 `referenced_image_paths`。提示词要用 `prompt_label` 明确 Image 1/2/3 与显示名的映射，并声明每张图仅作对应角色身份参考；只写文字身份描述不算完成。
-- 只做 `prompt`、shot list 或路由计划时不要无谓加载图片，但要把运行时解析出的 `asset_path` 和角色映射写入计划；静态文档写 `assets/<id>.png`，运行时不得使用开发机硬编码路径。
+- 只做 `prompt`、shot list 或路由计划时不要无谓加载图片，但要把运行时解析出的 `asset_path` 和角色映射写入计划；静态文档写 `assets/<id>.webp`，运行时不得使用开发机硬编码路径。
 
 ## 先读这些参考
 
@@ -49,10 +49,11 @@ description: 生成可按名称选择已注册 IP（默认牙仔；含绒宝、�
 - `references/design-dependencies.json`：v1 设计依赖注册表；先解析当前 Skill 根目录，再运行 `<skill-root>/scripts/doctor.py --json` 只读检查可用性。
 - `scripts/design_router.py`：原生、Dongfang、Everett、Baoyu、Guizang 与 gbro 能力路由、`create|prompt` 识别、目标相关模型门禁和有序图片输入装配。
 - `scripts/dependency_utils.py`：依赖注册表校验、`install_name`/根路径解析、安装信息和只读位置探测。
-- `scripts/register_character.py`：用户明确确认后，将批准的个人 IP PNG、身份协议和名称安全写入角色注册表；冲突只有 `--update` 才可覆盖。
-- `assets/rongbao.png`：绒宝角色参考图；只读取身份特征，不复制其 3D 绒毛材质、米色背景或原始姿态。
-- `assets/yazai.png`：牙仔角色参考图；只在选择牙仔时读取身份特征，媒介由目标 Skill 决定。
-- `assets/abao.png`：阿龅角色参考图；只在选择阿龅时读取身份特征，媒介由目标 Skill 决定。
+- `scripts/register_character.py`：用户明确确认后，将批准的个人 IP 图像无损转换为 WebP，连同身份协议和名称安全写入角色注册表；冲突只有 `--update` 才可覆盖。
+- `assets/rongbao.webp`：绒宝角色参考图；只读取身份特征，不复制其 3D 绒毛材质、米色背景或原始姿态。
+- `assets/yazai.webp`：牙仔角色参考图；只在选择牙仔时读取身份特征，媒介由目标 Skill 决定。
+- `assets/abao.webp`：阿龅角色参考图；只在选择阿龅时读取身份特征，媒介由目标 Skill 决定。
+- `assets/xiaomei.webp`：小美角色参考图；只在选择小美时读取身份特征，媒介由目标 Skill 决定。
 - `assets/examples/`：只作低频视觉校准，不进入默认生成路径。不要照抄这些案例的构图、物件或标注。
 
 ## 工作流
@@ -201,13 +202,13 @@ doctor 会同时检查安装目录的 `SKILL.md` 与必需的 `references/`；�
 $skill-installer install --repo DoraRabbitYan/personal-ip-image-pack --path . --name personal-ip-image-pack --ref main
 ```
 
-完整安装必须保留 `SKILL.md`、`references/`、`assets/` 和 `scripts/`。上游完成的原型默认只是当前任务产物；只有用户明确说“加入 Rongbao / 设为正式 IP”，并提供中文 `display_name`、英文 `id`、中英文 `aliases` 和批准 PNG 后，才执行：
+完整安装必须保留 `SKILL.md`、`references/`、`assets/` 和 `scripts/`。上游完成的原型默认只是当前任务产物；只有用户明确说“加入 Rongbao / 设为正式 IP”，并提供中文 `display_name`、英文 `id`、中英文 `aliases` 和批准原型图（PNG/JPEG/WebP）后，才执行：
 
 ```text
 python -X utf8 <skill-root>/scripts/register_character.py --confirm \
   --id <english-id> --display-name <中文名> \
   --alias <中文名> --alias <english-id> \
-  --prototype <approved-prototype.png>
+  --prototype <approved-prototype>
 ```
 
 已有 id 或别名默认失败；只有再次明确授权并附 `--update` 才更新已有角色。注册后新角色才会像牙仔、绒宝和阿龅一样按名称解析，并作为目标设计 Skill 的身份参考图。
@@ -254,8 +255,8 @@ assets/<article-slug>-illustrations/
 按顺序命名：
 
 ```text
-01-topic-name.png
-02-topic-name.png
+01-topic-name.webp
+02-topic-name.webp
 ```
 
 保留原始生成文件，不要覆盖已有资产，除非用户明确要求替换。

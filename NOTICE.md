@@ -10,12 +10,12 @@ Thanks to the upstream project author for the original Skill structure and visua
 
 The four registered IP reference files are maintained by the current project maintainer:
 
-- Rongbao: `rongbao-illustrations/assets/rongbao.png` and its independent adaptation. Upstream attribution is retained here for the adapted portions.
-- Yazai: `rongbao-illustrations/assets/yazai.png`.
-- Abao: `rongbao-illustrations/assets/abao.png`.
-- Xiaomei: `rongbao-illustrations/assets/xiaomei.png`, an explicitly approved personal-IP prototype registered by the current maintainer.
+- Rongbao: `rongbao-illustrations/assets/rongbao.webp` and its independent adaptation. Upstream attribution is retained here for the adapted portions.
+- Yazai: `rongbao-illustrations/assets/yazai.webp`.
+- Abao: `rongbao-illustrations/assets/abao.webp`.
+- Xiaomei: `rongbao-illustrations/assets/xiaomei.webp`, an explicitly approved personal-IP prototype registered by the current maintainer.
 
-The images shown in the README gallery, including `rongbao-illustrations/assets/showcase/xiaomei-process-collage.png`, `rongbao-illustrations/assets/examples/`, and `comic/` are project-generated derivative examples or local project reference outputs. They are not upstream reference images, and their presence does not transfer ownership of any upstream IP, Skill, or user-supplied character.
+The images shown in the README gallery, including `rongbao-illustrations/assets/showcase/xiaomei-process-collage.webp`, `rongbao-illustrations/assets/examples/`, and `comic/` are project-generated derivative examples or local project reference outputs. They are not upstream reference images, and their presence does not transfer ownership of any upstream IP, Skill, or user-supplied character.
 
 This project optionally routes cover, poster, and square requests to the upstream [Dongfang cover-design Skill](https://github.com/yang0/dongfang/tree/main/dongfang-cover-design) in [yang0/dongfang](https://github.com/yang0/dongfang). The dependency is not bundled here; its source, assets, and applicable license terms remain governed by that upstream project. This notice declares no additional license or authorization for Dongfang.
 

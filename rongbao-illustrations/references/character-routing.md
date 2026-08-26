@@ -10,7 +10,7 @@
 4. “这个IP”“该IP”是泛指，不切换角色；没有具体识别名时仍使用默认牙仔。
 5. 只有用户明确使用“使用/切换到/指定某某 IP”等语义点名一个未注册名称时，才返回当前支持列表（绒宝、牙仔、阿龅）并请求用户改用支持名称；普通正文中的陌生名词不触发该错误。
 
-真人照片个人 IP 是另一条设计路由，不会因为“人物表情包”或“个人卡通形象”把牙仔自动注入。只有原型经用户明确确认，并同时提供中文显示名、英文 `id`、中英文别名和批准的 PNG 后，才可运行受控注册脚本；注册前的原型只属于当前任务。
+真人照片个人 IP 是另一条设计路由，不会因为“人物表情包”或“个人卡通形象”把牙仔自动注入。只有原型经用户明确确认，并同时提供中文显示名、英文 `id`、中英文别名和批准的源图后，才可运行受控注册脚本；注册前的原型只属于当前任务。
 
 ## 确定性解析入口
 
@@ -37,11 +37,11 @@ JSON 中保留向后兼容的 `characters` ID 列表，并额外返回按注册�
 只要请求会实际生成或编辑图片，文字身份描述都不能替代参考图输入，必须按以下顺序执行：
 
 1. 运行 `character_router.py --json`，读取 `character_inputs`，保留注册表顺序。
-2. 对每条记录的运行时 `asset_path` 调用 `view_image`，逐张查看已选角色的实际 PNG；不要查看或附加未选角色。
+2. 对每条记录的运行时 `asset_path` 调用 `view_image`，逐张查看已选角色的实际 WebP；不要查看或附加未选角色。
 3. 调用图像生成/编辑工具时，把每条记录的 `asset_path` 全部放入 `referenced_image_paths`。单角色也必须传 1 张，多角色按顺序传 2/3 张。
 4. 在提示词中明确标注 `Image 1 — 绒宝`、`Image 2 — 牙仔`、`Image 3 — 阿龅`（以本次返回的 `prompt_label` 为准），并说明“每张图仅作为对应角色的身份参考”；同时保留对应的身份协议作为文字约束。
 
-`prompt` 或只做 shot list/路由计划时不生成图片，可以不调用 `view_image`，但输出中必须展示解析得到的 `asset_path` 和对应角色映射，方便下一步原样传入。静态文档只写包内路径 `assets/<id>.png`；运行时永远使用 JSON 返回的绝对 `asset_path`，不要写死某台开发机路径。
+`prompt` 或只做 shot list/路由计划时不生成图片，可以不调用 `view_image`，但输出中必须展示解析得到的 `asset_path` 和对应角色映射，方便下一步原样传入。静态文档只写包内路径 `assets/<id>.webp`；运行时永远使用 JSON 返回的绝对 `asset_path`，不要写死某台开发机路径。
 
 角色资产、身份参考或注册项缺失时，doctor 报告角色状态；strict 模式失败，不能静默退回牙仔。
 
@@ -53,7 +53,7 @@ JSON 中保留向后兼容的 `characters` ID 列表，并额外返回按注册�
 python -X utf8 <skill-root>/scripts/register_character.py --confirm \
   --id <english-id> --display-name <中文名> \
   --alias <中文名> --alias <english-id> \
-  --prototype <approved-prototype.png>
+  --prototype <approved-prototype>
 ```
 
-脚本会把批准的 PNG 复制为 `assets/<id>.png`，创建 `references/<id>-identity.md`，并更新注册表。已有 `id` 或别名默认失败；只有用户再次明确授权并附 `--update` 时才更新已有角色。脚本不安装依赖，也不下载或复制上游个人 IP Skill。
+脚本接受 PNG、JPEG 或 WebP 源图，将批准的图片转换并保存为 `assets/<id>.webp`，创建 `references/<id>-identity.md`，并更新注册表。已有 `id` 或别名默认失败；只有用户再次明确授权并附 `--update` 时才更新已有角色。脚本不安装依赖，也不下载或复制上游个人 IP Skill。

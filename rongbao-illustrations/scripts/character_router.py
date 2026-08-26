@@ -16,6 +16,8 @@ SKILL_DIR = SCRIPT_DIR.parent
 REGISTRY_PATH = SKILL_DIR / "references" / "character-registry.json"
 ASCII_TOKEN_CHARS = r"A-Za-z0-9_-"
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+WEBP_RIFF_SIGNATURE = b"RIFF"
+WEBP_SIGNATURE = b"WEBP"
 
 
 class CharacterRegistryError(ValueError):
@@ -89,6 +91,43 @@ def _png_read_error(path: Path) -> str | None:
     if width <= 0 or height <= 0:
         return "asset has invalid PNG dimensions"
     return None
+
+
+def _webp_read_error(path: Path) -> str | None:
+    """Return a concise error when *path* is not a readable WebP file."""
+
+    try:
+        file_size = path.stat().st_size
+        with path.open("rb") as handle:
+            header = handle.read(20)
+    except OSError as exc:
+        return f"asset unreadable: {exc}"
+    if len(header) < 20 or header[:4] != WEBP_RIFF_SIGNATURE or header[8:12] != WEBP_SIGNATURE:
+        return "asset is not a readable WebP"
+    try:
+        riff_size = struct.unpack("<I", header[4:8])[0]
+        chunk_size = struct.unpack("<I", header[16:20])[0]
+    except struct.error:
+        return "asset has an incomplete WebP header"
+    if riff_size + 8 > file_size:
+        return "asset has a truncated WebP RIFF payload"
+    if header[12:16] not in {b"VP8 ", b"VP8L", b"VP8X"}:
+        return "asset has no supported WebP image chunk"
+    padded_chunk_end = 20 + chunk_size + (chunk_size & 1)
+    if chunk_size <= 0 or padded_chunk_end > file_size:
+        return "asset has an invalid WebP image chunk"
+    return None
+
+
+def _image_read_error(path: Path) -> str | None:
+    """Validate a registered raster image without requiring Pillow."""
+
+    suffix = path.suffix.casefold()
+    if suffix == ".webp":
+        return _webp_read_error(path)
+    if suffix == ".png":
+        return _png_read_error(path)
+    return f"unsupported registered asset format: {suffix or '<none>'}"
 
 
 def inspect_registry() -> dict[str, Any]:
@@ -173,7 +212,7 @@ def inspect_registry() -> dict[str, Any]:
         if not asset_exists:
             item_errors.append(f"asset missing: {asset}")
         else:
-            asset_error = _png_read_error(asset_path)
+            asset_error = _image_read_error(asset_path)
             if asset_error:
                 item_errors.append(f"asset invalid: {asset} ({asset_error})")
         if not identity_exists:

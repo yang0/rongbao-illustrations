@@ -46,7 +46,7 @@ Use $rongbao-illustrations 为这个观点生成一张 16:9 正文配图：
 
 信任不是喊出来的，而是一块证据一块证据铺过去。
 
-画面要怪诞但清爽；未指定角色时使用牙仔，读取 `assets/yazai.png` 和 `references/yazai-identity.md` 作为身份参考，并让牙仔承担核心动作。
+画面要怪诞但清爽；未指定角色时使用牙仔，读取 `assets/yazai.webp` 和 `references/yazai-identity.md` 作为身份参考，并让牙仔承担核心动作。
 中文标注最多 5 个，短一点。
 ```
 
@@ -66,7 +66,7 @@ Use $rongbao-illustrations 为这个主题生成一张正文配图。
 
 ```text
 Use $rongbao-illustrations 为这个主题生成一张正文配图。
-请使用阿龅（abao）作为核心动作角色，读取 `assets/abao.png` 与 `references/abao-identity.md`，保留黑白拟人犬、下垂黑耳、长口鼻和深色工装身份，不复制参考图材质。
+请使用阿龅（abao）作为核心动作角色，读取 `assets/abao.webp` 与 `references/abao-identity.md`，保留黑白拟人犬、下垂黑耳、长口鼻和深色工装身份，不复制参考图材质。
 ```
 
 也可以直接写：`用阿龅为这篇文章生成正文配图`。

@@ -6,28 +6,28 @@
     {
       "id": "rongbao",
       "display_name": "绒宝",
-      "asset_path": "rongbao-illustrations/assets/rongbao.png",
+      "asset_path": "rongbao-illustrations/assets/rongbao.webp",
       "identity_protocol": "rongbao-illustrations/references/rongbao-identity.md",
       "default": false
     },
     {
       "id": "yazai",
       "display_name": "牙仔",
-      "asset_path": "rongbao-illustrations/assets/yazai.png",
+      "asset_path": "rongbao-illustrations/assets/yazai.webp",
       "identity_protocol": "rongbao-illustrations/references/yazai-identity.md",
       "default": true
     },
     {
       "id": "abao",
       "display_name": "阿龅",
-      "asset_path": "rongbao-illustrations/assets/abao.png",
+      "asset_path": "rongbao-illustrations/assets/abao.webp",
       "identity_protocol": "rongbao-illustrations/references/abao-identity.md",
       "default": false
     },
     {
       "id": "xiaomei",
       "display_name": "小美",
-      "asset_path": "rongbao-illustrations/assets/xiaomei.png",
+      "asset_path": "rongbao-illustrations/assets/xiaomei.webp",
       "identity_protocol": "rongbao-illustrations/references/xiaomei-identity.md",
       "default": false
     }
@@ -41,7 +41,7 @@
       "target_skill": "rongbao-illustrations",
       "requires_dependency_install": false,
       "invoke_example": "Use $rongbao-illustrations create 为这篇文章生成 4 张牙仔正文配图。",
-      "image_path": "rongbao-illustrations/assets/examples/01-two-breakpoints.png",
+      "image_path": "rongbao-illustrations/assets/examples/01-two-breakpoints.webp",
       "image_status": "available",
       "image_source": "project-generated native example"
     },
@@ -53,7 +53,7 @@
       "target_skill": "dongfang-cover-design",
       "requires_dependency_install": true,
       "invoke_example": "Use $rongbao-illustrations create 用绒宝做一张横版封面，主题是把复杂观点变成入口。",
-      "image_path": "rongbao-illustrations/assets/showcase/dongfang-landscape-cover.png",
+      "image_path": "rongbao-illustrations/assets/showcase/dongfang-landscape-cover.webp",
       "image_status": "available",
       "image_source": "project-generated capability preview; not a Dongfang asset"
     },
@@ -65,7 +65,7 @@
       "target_skill": "dongfang-cover-design",
       "requires_dependency_install": true,
       "invoke_example": "Use $rongbao-illustrations create 为牙仔做一张竖版海报，画幅使用 portrait-poster。",
-      "image_path": "rongbao-illustrations/assets/showcase/dongfang-portrait-poster.png",
+      "image_path": "rongbao-illustrations/assets/showcase/dongfang-portrait-poster.webp",
       "image_status": "available",
       "image_source": "project-generated capability preview; not a Dongfang asset"
     },
@@ -77,7 +77,7 @@
       "target_skill": "dongfang-cover-design",
       "requires_dependency_install": true,
       "invoke_example": "Use $rongbao-illustrations prompt 让阿龅做一张 1:1 方图，主题是证据累积。",
-      "image_path": "rongbao-illustrations/assets/showcase/dongfang-square-graphic.png",
+      "image_path": "rongbao-illustrations/assets/showcase/dongfang-square-graphic.webp",
       "image_status": "available",
       "image_source": "project-generated capability preview; not a Dongfang asset"
     },
@@ -89,7 +89,7 @@
       "target_skill": "ip-illustration-character-system",
       "requires_dependency_install": true,
       "invoke_example": "Use $rongbao-illustrations create 用阿龅生成一张角色锚点图，保留黑白犬身份。",
-      "image_path": "rongbao-illustrations/assets/showcase/everett-character-anchor.png",
+      "image_path": "rongbao-illustrations/assets/showcase/everett-character-anchor.webp",
       "image_status": "available",
       "image_source": "project-generated capability preview; not an Everett asset"
     },
@@ -101,7 +101,7 @@
       "target_skill": "ip-illustration-character-system",
       "requires_dependency_install": true,
       "invoke_example": "Use $rongbao-illustrations create 用牙仔做一张 turnaround sheet。",
-      "image_path": "rongbao-illustrations/assets/showcase/everett-turnaround-sheet.png",
+      "image_path": "rongbao-illustrations/assets/showcase/everett-turnaround-sheet.webp",
       "image_status": "available",
       "image_source": "project-generated capability preview; not an Everett asset"
     },
@@ -113,7 +113,7 @@
       "target_skill": "ip-illustration-character-system",
       "requires_dependency_install": true,
       "invoke_example": "Use $rongbao-illustrations create 用绒宝做一张 mini pen-doodle。",
-      "image_path": "rongbao-illustrations/assets/showcase/everett-mini-article-illustration.png",
+      "image_path": "rongbao-illustrations/assets/showcase/everett-mini-article-illustration.webp",
       "image_status": "available",
       "image_source": "project-generated capability preview; not an Everett asset"
     },
@@ -125,7 +125,7 @@
       "target_skill": "ip-illustration-character-system",
       "requires_dependency_install": true,
       "invoke_example": "Use $rongbao-illustrations prompt 用绒宝做一张 3:4 信息图，先输出 prompt package。",
-      "image_path": "rongbao-illustrations/assets/showcase/everett-article-infographic-3x4.png",
+      "image_path": "rongbao-illustrations/assets/showcase/everett-article-infographic-3x4.webp",
       "image_status": "available",
       "image_source": "project-generated capability preview; not an Everett asset"
     },
@@ -137,7 +137,7 @@
       "target_skill": "ip-illustration-character-system",
       "requires_dependency_install": true,
       "invoke_example": "Use $rongbao-illustrations create 用阿龅做一张 3:4 贴纸页。",
-      "image_path": "comic/abao-sticker-preview/abao-sticker-preview.png",
+      "image_path": "comic/abao-sticker-preview/abao-sticker-preview.webp",
       "image_status": "available",
       "image_source": "project-generated Abao sticker preview; not an Everett asset",
       "source_notes": "This preview is a local project example. Generate a formal Everett output only after the optional dependency is installed and the required model confirmation is given."
@@ -150,7 +150,7 @@
       "target_skill": "baoyu-article-illustrator",
       "requires_dependency_install": true,
       "invoke_example": "Use $rongbao-illustrations create 用牙仔做一张 Baoyu 文章配图。",
-      "image_path": "rongbao-illustrations/assets/showcase/baoyu-article-illustration.png",
+      "image_path": "rongbao-illustrations/assets/showcase/baoyu-article-illustration.webp",
       "image_status": "available",
       "image_source": "project-generated capability preview; not a Baoyu asset"
     },
@@ -162,7 +162,7 @@
       "target_skill": "baoyu-comic",
       "requires_dependency_install": true,
       "invoke_example": "Use $rongbao-illustrations create 用牙仔做一套 Baoyu 知识漫画。",
-      "image_path": "comic/weichen-x-growth-sop/01-page-positioning-bio.png",
+      "image_path": "comic/weichen-x-growth-sop/01-page-positioning-bio.webp",
       "image_status": "available",
       "image_source": "project-generated comic output; not copied from Baoyu"
     },
@@ -174,7 +174,7 @@
       "target_skill": "baoyu-cover-image",
       "requires_dependency_install": true,
       "invoke_example": "Use $rongbao-illustrations create 用牙仔做一张 Baoyu 封面图。",
-      "image_path": "comic/weichen-x-growth-sop/00-cover-weichen-x-growth-sop.png",
+      "image_path": "comic/weichen-x-growth-sop/00-cover-weichen-x-growth-sop.webp",
       "image_status": "available",
       "image_source": "project-generated comic cover output; not copied from Baoyu"
     },
@@ -186,7 +186,7 @@
       "target_skill": "baoyu-infographic",
       "requires_dependency_install": true,
       "invoke_example": "Use $rongbao-illustrations create 用绒宝做一张 Baoyu 信息图。",
-      "image_path": "rongbao-illustrations/assets/showcase/baoyu-infographic.png",
+      "image_path": "rongbao-illustrations/assets/showcase/baoyu-infographic.webp",
       "image_status": "available",
       "image_source": "project-generated capability preview; not a Baoyu asset"
     },
@@ -198,7 +198,7 @@
       "target_skill": "baoyu-slide-deck",
       "requires_dependency_install": true,
       "invoke_example": "Use $rongbao-illustrations create 用阿龅做一套 Baoyu 幻灯片。",
-      "image_path": "rongbao-illustrations/assets/showcase/baoyu-slide-deck.png",
+      "image_path": "rongbao-illustrations/assets/showcase/baoyu-slide-deck.webp",
       "image_status": "available",
       "image_source": "project-generated capability preview; not a Baoyu asset"
     },
@@ -210,7 +210,7 @@
       "target_skill": "baoyu-xhs-images",
       "requires_dependency_install": true,
       "invoke_example": "Use $rongbao-illustrations create 用绒宝和牙仔做一组 Baoyu 小红书图片。",
-      "image_path": "rongbao-illustrations/assets/showcase/baoyu-xhs-images.png",
+      "image_path": "rongbao-illustrations/assets/showcase/baoyu-xhs-images.webp",
       "image_status": "available",
       "image_source": "project-generated capability preview; not a Baoyu asset"
     }
@@ -221,7 +221,7 @@
       "style": "Swiss International",
       "aspect_ratio": "3:4",
       "target_skill": "guizang-social-card-skill",
-      "image_path": "rongbao-illustrations/assets/showcase/guizang-swiss-social-card.png",
+      "image_path": "rongbao-illustrations/assets/showcase/guizang-swiss-social-card.webp",
       "image_source": "project-generated style variant; not a Guizang asset"
     },
     {
@@ -229,7 +229,7 @@
       "style": "Editorial Magazine",
       "aspect_ratio": "3:4",
       "target_skill": "guizang-social-card-skill",
-      "image_path": "rongbao-illustrations/assets/showcase/guizang-editorial-social-card.png",
+      "image_path": "rongbao-illustrations/assets/showcase/guizang-editorial-social-card.webp",
       "image_source": "project-generated style variant; not a Guizang asset"
     },
     {
@@ -237,7 +237,7 @@
       "style": "彩色水墨 Editorial Cover",
       "aspect_ratio": "16:9",
       "target_skill": "dongfang-cover-design",
-      "image_path": "rongbao-illustrations/assets/showcase/dongfang-color-ink-cover.png",
+      "image_path": "rongbao-illustrations/assets/showcase/dongfang-color-ink-cover.webp",
       "image_source": "project-generated style variant; not a Dongfang asset"
     },
     {
@@ -245,7 +245,7 @@
       "style": "Non-Chinese high-density color poster",
       "aspect_ratio": "3:4",
       "target_skill": "dongfang-cover-design",
-      "image_path": "rongbao-illustrations/assets/showcase/dongfang-non-chinese-color-poster.png",
+      "image_path": "rongbao-illustrations/assets/showcase/dongfang-non-chinese-color-poster.webp",
       "image_source": "project-generated style variant; not a Dongfang asset"
     },
     {
@@ -253,7 +253,7 @@
       "style": "彩色角色锚点",
       "aspect_ratio": "3:4",
       "target_skill": "ip-illustration-character-system",
-      "image_path": "rongbao-illustrations/assets/showcase/everett-color-character-anchor.png",
+      "image_path": "rongbao-illustrations/assets/showcase/everett-color-character-anchor.webp",
       "image_source": "project-generated style variant; not an Everett asset"
     },
     {
@@ -261,7 +261,7 @@
       "style": "彩色知识漫画",
       "aspect_ratio": "4:3",
       "target_skill": "baoyu-comic",
-      "image_path": "rongbao-illustrations/assets/showcase/baoyu-color-comic.png",
+      "image_path": "rongbao-illustrations/assets/showcase/baoyu-color-comic.webp",
       "image_source": "project-generated style variant; not a Baoyu asset"
     },
     {
@@ -269,7 +269,7 @@
       "style": "真实场景 + 手绘牙仔",
       "aspect_ratio": "4:3",
       "target_skill": "rongbao-illustrations",
-      "image_path": "rongbao-illustrations/assets/showcase/real-scene-handdrawn-yazai.png",
+      "image_path": "rongbao-illustrations/assets/showcase/real-scene-handdrawn-yazai.webp",
       "image_source": "project-generated composition demo; not an upstream asset"
     },
     {
@@ -277,7 +277,7 @@
       "style": "3D 动画电影感封面",
       "aspect_ratio": "16:9",
       "target_skill": "rongbao-illustrations",
-      "image_path": "rongbao-illustrations/assets/showcase/yazai-3d-animated-cover.png",
+      "image_path": "rongbao-illustrations/assets/showcase/yazai-3d-animated-cover.webp",
       "image_source": "project-generated cover demo; not an upstream asset"
     },
     {
@@ -285,7 +285,7 @@
       "style": "阿龅机器人降价封面",
       "aspect_ratio": "3:4",
       "target_skill": "gbro-cover-design",
-      "image_path": "rongbao-illustrations/assets/showcase/gbro-abao-robot-price.png",
+      "image_path": "rongbao-illustrations/assets/showcase/gbro-abao-robot-price.webp",
       "image_source": "project-generated gbro composition demo; not a gbro asset"
     },
     {
@@ -293,7 +293,7 @@
       "style": "IP-05 → IP-03 个人 IP 制作流程",
       "aspect_ratio": "16:9",
       "target_skill": "personal-ip-image-pack",
-      "image_path": "rongbao-illustrations/assets/showcase/xiaomei-process-collage.png",
+      "image_path": "rongbao-illustrations/assets/showcase/xiaomei-process-collage.webp",
       "image_source": "project-generated Xiaomei process collage; not a Personal IP Image Pack asset"
     }
   ]

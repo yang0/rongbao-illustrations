@@ -23,7 +23,7 @@
 - Confused: sweat drop and tilted ears while a post gets no impressions.
 - Determined: grips a large gear or lever labelled with a growth step.
 
-**Identity constraint**: use the registered original reference image at `E:/projectHome/ian-xiaohei-illustrations/rongbao-illustrations/assets/yazai.png` as the primary identity reference. The manga style may change line, shading and composition, but must not change the cat's face, ears, eyes, teeth, whiskers, tail, clothing or black-white palette.
+**Identity constraint**: use the registered original reference image at `E:/projectHome/ian-xiaohei-illustrations/rongbao-illustrations/assets/yazai.webp` as the primary identity reference. The manga style may change line, shading and composition, but must not change the cat's face, ears, eyes, teeth, whiskers, tail, clothing or black-white palette.
 
 ## Recurring Props
 

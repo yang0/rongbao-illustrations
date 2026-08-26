@@ -9,7 +9,7 @@ tone: energetic
 layout: mixed
 references:
   - ref_id: yazai
-    filename: "E:/projectHome/ian-xiaohei-illustrations/rongbao-illustrations/assets/yazai.png"
+    filename: "E:/projectHome/ian-xiaohei-illustrations/rongbao-illustrations/assets/yazai.webp"
     usage: direct
 ---
 

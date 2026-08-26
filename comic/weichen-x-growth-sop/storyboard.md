@@ -12,18 +12,18 @@ generated: "2026-08-24"
 
 # 微尘直播拆解：X 账号冷启动增长 SOP
 
-**Character Reference**: `characters/characters.md` and registered original `E:/projectHome/ian-xiaohei-illustrations/rongbao-illustrations/assets/yazai.png`
+**Character Reference**: `characters/characters.md` and registered original `E:/projectHome/ian-xiaohei-illustrations/rongbao-illustrations/assets/yazai.webp`
 
 ## Cover
 
-**Filename**: `00-cover-weichen-x-growth-sop.png`
+**Filename**: `00-cover-weichen-x-growth-sop.webp`
 **Core Message**: 增长不是玄学，是一组互相咬合的细节。
 
 **Visual Design**: 牙仔站在巨大的 X 增长飞轮旁，飞轮由“定位 / Bio / 内容 / 钩子 / 互动 / 复盘”六个齿轮组成；明亮白底、蓝橙黄强调色、日式清爽漫画线稿；标题清晰简体中文。
 
 ## Page 1 / 7：先让人五秒记住你
 
-**Filename**: `01-page-positioning-bio.png`
+**Filename**: `01-page-positioning-bio.webp`
 **Core Message**: 定位要让陌生人一眼知道“你做什么、关注你得到什么”。
 
 **Panels**:
@@ -34,7 +34,7 @@ generated: "2026-08-24"
 
 ## Page 2 / 7：70/20/10 是给算法的燃料配方
 
-**Filename**: `02-page-content-ratio.png`
+**Filename**: `02-page-content-ratio.webp`
 **Core Message**: 70% 专业垂直、20% 生活垂直、10% 自由内容，重点是持续形成稳定标签。
 
 **Panels**:
@@ -45,7 +45,7 @@ generated: "2026-08-24"
 
 ## Page 3 / 7：钩子要在折叠线之前完成任务
 
-**Filename**: `03-page-hook-fold.png`
+**Filename**: `03-page-hook-fold.webp`
 **Core Message**: 前 7 行同时交代系列标签、情绪、反直觉点和读者收益。
 
 **Panels**:
@@ -56,7 +56,7 @@ generated: "2026-08-24"
 
 ## Page 4 / 7：稳定节奏，晚间推动临界点
 
-**Filename**: `04-page-repost-flywheel.png`
+**Filename**: `04-page-repost-flywheel.webp`
 **Core Message**: 早上批量备稿、间隔发布，晚上只挑当天接近整数曝光的帖子转推。
 
 **Panels**:
@@ -67,7 +67,7 @@ generated: "2026-08-24"
 
 ## Page 5 / 7：借别人的内容，但必须带上自己的判断
 
-**Filename**: `05-page-quote-reply-safety.png`
+**Filename**: `05-page-quote-reply-safety.webp`
 **Core Message**: 引用是用自己的经验做主文，回复要相关、适量、有边界。
 
 **Panels**:
@@ -78,7 +78,7 @@ generated: "2026-08-24"
 
 ## Page 6 / 7：置顶贴是内容地图，关注要有筛选
 
-**Filename**: `06-page-pinned-follow-topic.png`
+**Filename**: `06-page-pinned-follow-topic.webp`
 **Core Message**: 把精品内容集中到置顶地图，用小规模、主动而安全的关注建立基础网络。
 
 **Panels**:
@@ -89,7 +89,7 @@ generated: "2026-08-24"
 
 ## Page 7 / 7：把所有小动作装成增长飞轮
 
-**Filename**: `07-page-growth-loop.png`
+**Filename**: `07-page-growth-loop.webp`
 **Core Message**: 标签清晰 → 内容被收藏 → 曝光增加 → 粉丝增长 → 每条帖子的起跑线变高。
 
 **Panels**:

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Explicitly register a user-approved IP in the Rongbao character registry.
 
-This helper is intentionally opt-in.  It copies one approved PNG into the
-installed Skill package, creates or accepts an identity protocol, and updates
+This helper is intentionally opt-in.  It converts one approved source image
+into the installed Skill package as WebP, creates or accepts an identity protocol, and updates
 the local registry only after ``--confirm`` has been supplied.  It never
 downloads a character, installs a dependency, or overwrites an existing
 character unless ``--update`` is also supplied.
@@ -11,6 +11,7 @@ character unless ``--update`` is also supplied.
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import os
 import re
@@ -28,7 +29,7 @@ CJK_PATTERN = re.compile(r"[\u3400-\u9fff]")
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from character_router import _png_read_error  # noqa: E402
+from character_router import _image_read_error, _png_read_error  # noqa: E402
 
 
 class CharacterRegistrationError(ValueError):
@@ -83,11 +84,51 @@ def _validate_metadata(character_id: str, display_name: str, aliases: list[str])
 def _validate_prototype(path: Path) -> None:
     if not path.is_file():
         raise CharacterRegistrationError(f"approved prototype does not exist: {path}")
-    if path.suffix.casefold() != ".png":
-        raise CharacterRegistrationError("approved prototype must be a PNG file")
-    error = _png_read_error(path)
-    if error:
-        raise CharacterRegistrationError(f"approved prototype is invalid: {error}")
+    suffix = path.suffix.casefold()
+    if suffix not in {".png", ".jpg", ".jpeg", ".webp"}:
+        raise CharacterRegistrationError("approved prototype must be PNG, JPEG, or WebP")
+    if suffix == ".png":
+        error = _png_read_error(path)
+        if error:
+            raise CharacterRegistrationError(f"approved prototype is invalid: {error}")
+    elif suffix == ".webp":
+        error = _image_read_error(path)
+        if error:
+            raise CharacterRegistrationError(f"approved prototype is invalid: {error}")
+    else:
+        try:
+            from PIL import Image
+        except ImportError as exc:
+            raise CharacterRegistrationError(
+                "Pillow is required to validate JPEG prototypes; use PNG/WebP or install Pillow"
+            ) from exc
+        try:
+            with Image.open(path) as image:
+                image.verify()
+        except (OSError, SyntaxError) as exc:
+            raise CharacterRegistrationError(f"approved prototype is invalid: {exc}") from exc
+
+
+def _prototype_webp_bytes(path: Path) -> bytes:
+    """Encode an approved source image as a lossless WebP registry asset."""
+
+    if path.suffix.casefold() == ".webp":
+        return path.read_bytes()
+    try:
+        from PIL import Image
+    except ImportError as exc:
+        raise CharacterRegistrationError(
+            "Pillow is required to convert the approved prototype to WebP; install Pillow first"
+        ) from exc
+    try:
+        with Image.open(path) as image:
+            image.load()
+            rendered = image.convert("RGBA")
+            output = io.BytesIO()
+            rendered.save(output, format="WEBP", lossless=True, method=6)
+            return output.getvalue()
+    except (OSError, ValueError) as exc:
+        raise CharacterRegistrationError(f"approved prototype cannot be converted to WebP: {exc}") from exc
 
 
 def _identity_protocol(
@@ -183,7 +224,7 @@ def register_character(
     confirm: bool = False,
     update: bool = False,
 ) -> dict[str, Any]:
-    """Register one approved PNG and return its machine-readable result."""
+    """Register one approved image as a lossless WebP asset."""
 
     if not confirm:
         raise CharacterRegistrationError(
@@ -196,6 +237,7 @@ def register_character(
     normalised_aliases = _normalise_aliases(character_id, display_name, supplied_aliases)
     prototype = prototype.expanduser().resolve(strict=False)
     _validate_prototype(prototype)
+    prototype_bytes = _prototype_webp_bytes(prototype)
 
     skill_dir = skill_dir.expanduser().resolve(strict=False)
     registry_path = skill_dir / "references" / "character-registry.json"
@@ -207,7 +249,7 @@ def register_character(
         aliases=normalised_aliases,
         update=update,
     )
-    asset_path = skill_dir / "assets" / f"{character_id}.png"
+    asset_path = skill_dir / "assets" / f"{character_id}.webp"
     identity_path = skill_dir / "references" / f"{character_id}-identity.md"
     if not update or same_id_index is None:
         for path, label in ((asset_path, "asset"), (identity_path, "identity protocol")):
@@ -216,7 +258,7 @@ def register_character(
     if conflicts:
         raise CharacterRegistrationError("; ".join(dict.fromkeys(conflicts)))
 
-    asset_relative = f"assets/{character_id}.png"
+    asset_relative = f"assets/{character_id}.webp"
     identity_relative = f"references/{character_id}-identity.md"
     identity_content = _identity_protocol(
         display_name=display_name,
@@ -242,7 +284,7 @@ def register_character(
         else:
             characters[same_id_index] = character_record
             updated = True
-        _atomic_write(asset_path, prototype.read_bytes())
+        _atomic_write(asset_path, prototype_bytes)
         _atomic_write(identity_path, identity_content.encode("utf-8"))
         _write_registry(registry_path, registry)
     except Exception:
@@ -278,7 +320,13 @@ def main(argv: list[str] | None = None) -> int:
         default=[],
         help="character alias; repeat for Chinese and English aliases",
     )
-    parser.add_argument("--prototype", "--asset", required=True, type=Path, help="approved PNG prototype")
+    parser.add_argument(
+        "--prototype",
+        "--asset",
+        required=True,
+        type=Path,
+        help="approved PNG/JPEG/WebP prototype; registry output is lossless WebP",
+    )
     parser.add_argument("--identity-file", type=Path, help="approved identity protocol Markdown")
     parser.add_argument("--identity-text", help="identity protocol Markdown text")
     parser.add_argument("--skill-dir", type=Path, default=SKILL_DIR, help="installed Rongbao Skill root")

@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from PIL import Image
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -27,15 +28,10 @@ PERSONAL_DEPENDENCY = next(
 )
 
 
-VALID_PNG_HEADER = (
-    b"\x89PNG\r\n\x1a\n"
-    + (13).to_bytes(4, "big")
-    + b"IHDR"
-    + (64).to_bytes(4, "big")
-    + (64).to_bytes(4, "big")
-    + b"\x08\x06\x00\x00\x00"
-    + b"\x00\x00\x00\x00"
-)
+
+
+def _write_png(path: Path, size: tuple[int, int]) -> None:
+    Image.new("RGBA", size, (42, 118, 164, 255)).save(path, format="PNG")
 
 
 def _skill_fixture(tmp_path: Path) -> Path:
@@ -52,7 +48,7 @@ def _skill_fixture(tmp_path: Path) -> Path:
                         "id": "yazai",
                         "display_name": "牙仔",
                         "aliases": ["牙仔", "yazai"],
-                        "asset": "assets/yazai.png",
+                        "asset": "assets/yazai.webp",
                         "identity_reference": "references/yazai-identity.md",
                     }
                 ],
@@ -145,7 +141,7 @@ def test_existing_ip_and_mascot_requests_do_not_route_to_personal_pack() -> None
 def test_registration_requires_confirmation_and_writes_protocol(tmp_path: Path) -> None:
     skill_dir = _skill_fixture(tmp_path)
     prototype = tmp_path / "approved.png"
-    prototype.write_bytes(VALID_PNG_HEADER)
+    _write_png(prototype, (64, 64))
 
     with pytest.raises(CharacterRegistrationError, match="English aliases"):
         register_character(
@@ -165,7 +161,7 @@ def test_registration_requires_confirmation_and_writes_protocol(tmp_path: Path) 
             prototype,
             skill_dir=skill_dir,
         )
-    assert not (skill_dir / "assets" / "momo.png").exists()
+    assert not (skill_dir / "assets" / "momo.webp").exists()
 
     result = register_character(
         "momo",
@@ -178,7 +174,10 @@ def test_registration_requires_confirmation_and_writes_protocol(tmp_path: Path) 
     )
     assert result["registered"] is True
     assert result["updated"] is False
-    assert (skill_dir / "assets" / "momo.png").read_bytes() == VALID_PNG_HEADER
+    registered_asset = skill_dir / "assets" / "momo.webp"
+    with Image.open(registered_asset) as image:
+        assert image.format == "WEBP"
+        assert image.size == (64, 64)
     assert "红围巾" in (skill_dir / "references" / "momo-identity.md").read_text(encoding="utf-8")
     registry = json.loads((skill_dir / "references" / "character-registry.json").read_text(encoding="utf-8"))
     assert registry["default_character"] == "yazai"
@@ -189,8 +188,8 @@ def test_registration_conflict_requires_update_and_update_preserves_default(tmp_
     skill_dir = _skill_fixture(tmp_path)
     first = tmp_path / "first.png"
     second = tmp_path / "second.png"
-    first.write_bytes(VALID_PNG_HEADER)
-    second.write_bytes(VALID_PNG_HEADER.replace((64).to_bytes(4, "big"), (128).to_bytes(4, "big"), 1))
+    _write_png(first, (64, 64))
+    _write_png(second, (128, 128))
     register_character("momo", "墨墨", ["墨墨", "momo"], first, skill_dir=skill_dir, confirm=True)
 
     with pytest.raises(CharacterRegistrationError, match="already exists"):
@@ -206,7 +205,9 @@ def test_registration_conflict_requires_update_and_update_preserves_default(tmp_
         update=True,
     )
     assert updated["updated"] is True
-    assert (skill_dir / "assets" / "momo.png").read_bytes() == second.read_bytes()
+    with Image.open(skill_dir / "assets" / "momo.webp") as image:
+        assert image.format == "WEBP"
+        assert image.size == (128, 128)
     registry = json.loads((skill_dir / "references" / "character-registry.json").read_text(encoding="utf-8"))
     assert registry["default_character"] == "yazai"
     assert registry["characters"][-1]["display_name"] == "墨墨二代"
