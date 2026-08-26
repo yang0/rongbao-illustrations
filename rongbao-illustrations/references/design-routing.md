@@ -15,6 +15,7 @@
 | 显式调用 `guizang-social-card-skill`、写“归藏”、瑞士风社交卡、电子杂志社交卡、公众号封面对或 Live Photo | 路由到 `guizang-social-card-skill` 的对应能力；有 Rongbao IP 信号时注入已选角色，否则为 `direct-target` |
 | 显式调用 `gbro`、`gbro-cover-design`、写“gbro 封面”“三轮提问封面”或“10 种构图风格封面” | 路由到 `gbro-cover-design` / `cover-prompt-3x4`；有 Rongbao IP 信号时注入已选角色，否则为 `direct-target`；始终只输出 3:4 提示词包 |
 | 泛指小红书图文/图片但未选择视觉系统 | 返回 `style_selection_required: true`，候选为归藏瑞士风、归藏电子杂志风和 Baoyu `xhs-images`；不自动抢占任一目标 |
+| 显式调用 `personal-ip-image-pack`，或请求真人照片 IP、本人/博主卡通形象、照片转卡通、人物表情包/动作包 | 路由到 `personal-ip-image-pack` 的个人 IP 原型、表情包、动作包或贴纸套图能力；上游自行读取用户照片，不注入默认牙仔，也不自动注册新角色 |
 | 只有知识漫画、漫画、小红书图片、图片卡片或幻灯片/slide deck，没有 Rongbao IP 信号 | 路由到对应 Baoyu Skill 的 `direct-target`，不注入 Rongbao 图片 |
 | 只有 `$dongfang-cover-design`，但没有绒宝/牙仔/阿龅/IP 身份信号 | 仅执行用户明确点名的目标 Skill，不注入任何角色参考图，不由本 adapter 组合 |
 | 只有 `$ip-illustration-character-system`，但没有绒宝/牙仔/阿龅/IP 身份信号 | 允许用户直接使用上游 Skill，但不注入任何角色参考图 |
@@ -22,7 +23,7 @@
 
 “绒宝”“牙仔”“阿龅”或其别名、“这个IP”或“带IP”等身份信号、显式调用 `$rongbao-illustrations`，以及目标画幅信号，是组合路由的触发条件：显式调用 `$rongbao-illustrations` 时，与封面/海报/方图同时出现即可组合；没有任何角色/IP 信号时，单独的 `$dongfang-cover-design` 不得注入角色参考图。用户明确点名目标 Skill 时，尊重该明确调用。
 
-角色先按 [character-routing.md](character-routing.md) 解析：无角色名或只有“这个IP/该IP”时默认 `yazai`；出现任意两个或三个注册别名时选择对应的全部角色；明确未知名称返回支持列表，不猜测替代角色。
+角色先按 [character-routing.md](character-routing.md) 解析：无角色名或只有“这个IP/该IP”时默认 `yazai`；出现两个或更多注册别名时选择对应的全部角色；明确未知名称返回支持列表，不猜测替代角色。
 
 ## 画幅到能力的映射
 
@@ -46,6 +47,8 @@
 - gbro 的 3:4 固定画幅、10 种模板和三轮提问 → `ten-layout-styles` / `three-round-briefing` / `character-reference-prompt`
 - 幻灯片、slide deck、演示文稿 → `baoyu-slide-deck`
 - Baoyu 封面、Baoyu 信息图 → `baoyu-cover-image` / `baoyu-infographic`
+- 真人照片 IP、本人/博主卡通形象、照片转卡通 → `personal-ip-image-pack` / `personal-ip-prototype`
+- 人物表情包、人物动作包、人物贴纸套图 → `personal-ip-image-pack` / `expression-pack`、`action-pack`、`sticker-pack`
 
 目标能力必须出现在 [design-dependencies.json](design-dependencies.json) 的注册表中。注册表是声明性数据，不是目标 Skill 的副本。
 
@@ -176,6 +179,25 @@ $skill-installer install --repo op7418/guizang-social-card-skill --path . --name
 
 不要复制上游源码、模板或素材。用户拒绝时不安装、不修改环境，也不模拟归藏的版式能力。
 
+个人照片 IP 依赖缺失时只展示一次来源、能力和完整根目录安装参数，并请求一次确认：
+
+```text
+缺少个人 IP 依赖：personal-ip-image-pack
+来源：https://github.com/DoraRabbitYan/personal-ip-image-pack
+参数：repo `DoraRabbitYan/personal-ip-image-pack` / path `.` / name `personal-ip-image-pack` / ref `main`
+能力：personal-ip-prototype / expression-pack / action-pack / sticker-pack
+许可证：上游当前未声明；本项目不作额外许可推断
+是否使用系统 $skill-installer 从 GitHub 安装上述依赖？
+```
+
+确认后交给系统 `$skill-installer`：
+
+```text
+$skill-installer install --repo DoraRabbitYan/personal-ip-image-pack --path . --name personal-ip-image-pack --ref main
+```
+
+完整根目录包必须保留 `SKILL.md`、`references/`、`assets/` 和 `scripts/`；Rongbao 不复制上游源码、风格库、示例或用户照片。上游生成的原型默认只作为本次产物，只有用户明确确认并提供注册信息时，才运行 `scripts/register_character.py` 写入本地角色库。
+
 gbro 可选依赖缺失时只展示一次来源、MIT、固定画幅和完整仓库安装参数，并请求一次确认：
 
 ```text
@@ -198,4 +220,4 @@ $skill-installer install --repo pyang5166/gbro-cover-design --path . --name gbro
 
 ## 扩展注册
 
-新增目标设计 Skill 时，只需在注册表增加 `skill_id`、可选 `install_name`、GitHub `repo`、Skill `path`、Git ref `ref`、`optional`、`reference_policy` 和 `capabilities`，并在本文件增加明确的身份信号与能力映射。需要 GPT Image 2 的目标才声明 `requires_gpt_image_2: true`；若上游要求额外目录（如 gbro 的 `references/`），声明 `required_paths`，doctor 会将缺少目录的安装判为 invalid；根路径用 `path: "."`，doctor 与安装信息会保留仓库根位置，不生成 `/.`。不要把目标 Skill 的源码或图片复制到本仓库。
+新增目标设计 Skill 时，只需在注册表增加 `skill_id`、可选 `install_name`、GitHub `repo`、Skill `path`、Git ref `ref`、`optional`、`reference_policy` 和 `capabilities`，并在本文件增加明确的身份信号与能力映射。个人照片 IP 还必须保持隐式触发与已注册角色路由边界，并在确认后才调用注册脚本。需要 GPT Image 2 的目标才声明 `requires_gpt_image_2: true`；若上游要求额外目录（如 gbro 的 `references/`），声明 `required_paths`，doctor 会将缺少目录的安装判为 invalid；根路径用 `path: "."`，doctor 与安装信息会保留仓库根位置，不生成 `/.`。不要把目标 Skill 的源码或图片复制到本仓库。

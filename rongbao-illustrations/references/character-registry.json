@@ -31,6 +31,16 @@
       ],
       "asset": "assets/abao.png",
       "identity_reference": "references/abao-identity.md"
+    },
+    {
+      "id": "xiaomei",
+      "display_name": "小美",
+      "aliases": [
+        "小美",
+        "xiaomei"
+      ],
+      "asset": "assets/xiaomei.png",
+      "identity_reference": "references/xiaomei-identity.md"
     }
   ]
 }

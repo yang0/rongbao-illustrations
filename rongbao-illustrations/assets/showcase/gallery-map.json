@@ -23,6 +23,13 @@
       "asset_path": "rongbao-illustrations/assets/abao.png",
       "identity_protocol": "rongbao-illustrations/references/abao-identity.md",
       "default": false
+    },
+    {
+      "id": "xiaomei",
+      "display_name": "小美",
+      "asset_path": "rongbao-illustrations/assets/xiaomei.png",
+      "identity_protocol": "rongbao-illustrations/references/xiaomei-identity.md",
+      "default": false
     }
   ],
   "ability_gallery": [
@@ -280,6 +287,14 @@
       "target_skill": "gbro-cover-design",
       "image_path": "rongbao-illustrations/assets/showcase/gbro-abao-robot-price.png",
       "image_source": "project-generated gbro composition demo; not a gbro asset"
+    },
+    {
+      "group": "Personal IP",
+      "style": "IP-05 → IP-03 个人 IP 制作流程",
+      "aspect_ratio": "16:9",
+      "target_skill": "personal-ip-image-pack",
+      "image_path": "rongbao-illustrations/assets/showcase/xiaomei-process-collage.png",
+      "image_source": "project-generated Xiaomei process collage; not a Personal IP Image Pack asset"
     }
   ]
 }

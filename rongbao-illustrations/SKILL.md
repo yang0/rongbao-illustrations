@@ -1,6 +1,6 @@
 ---
 name: rongbao-illustrations
-description: 生成可按名称选择绒宝、牙仔或阿龅的中文正文配图；当用户同时提到角色、这个IP、显式调用 $rongbao-illustrations 或带IP，以及封面、竖版海报、方图、萌粒/角色锚点/转面/3:4 信息图/贴纸，或 Baoyu/宝玉 的漫画、小红书图片、幻灯片、文章配图、封面、信息图能力时，按注册依赖组合调用目标设计 Skill。用于正文配图、文章插图、配图建议、shot list、去标题/改图和 create|prompt 透传；未指定角色时默认牙仔，正文原生模式使用牙仔黑白身份协议、纯白手绘、少量红橙蓝批注、简洁清爽但天马行空的视觉风格。
+description: 生成可按名称选择已注册 IP（默认牙仔；含绒宝、阿龅和确认注册的个人角色）的中文正文配图；当用户同时提到角色、这个IP、显式调用 $rongbao-illustrations 或带IP，以及封面、竖版海报、方图、萌粒/角色锚点/转面/3:4 信息图/贴纸，Baoyu/宝玉 的内容能力，或真人照片个人 IP、本人/博主卡通形象、照片转卡通、人物表情包/动作包时，按注册依赖组合调用目标设计 Skill。用于正文配图、文章插图、配图建议、shot list、去标题/改图和 create|prompt 透传；未指定角色时默认牙仔，正文原生模式使用牙仔黑白身份协议、纯白手绘、少量红橙蓝批注、简洁清爽但天马行空的视觉风格。
 ---
 
 # 绒宝怪诞正文配图与跨设计组合路由
@@ -19,10 +19,11 @@ description: 生成可按名称选择绒宝、牙仔或阿龅的中文正文配�
 - “绒宝/牙仔/阿龅/这个IP/带IP”或显式调用 `$rongbao-illustrations`，并与封面、竖版海报、方图或 1:1 同时出现：走组合模式。
 - 普通封面、竖版海报和方图仍路由到已注册的 `dongfang-cover-design`；普通 3:4 信息图、萌粒和贴纸仍路由到 Everett 的 `ip-illustration-character-system`。
 - 显式调用任一 `baoyu-*` Skill，或写“Baoyu/宝玉 + 文章配图、封面、信息图、知识漫画、漫画、小红书图片、图片卡片、幻灯片/slide deck”：优先路由到对应 Baoyu Skill。知识漫画、小红书图片和幻灯片是 Baoyu 独有能力；带角色/IP信号时注入已选角色，没有信号时只透传给上游。
+- 显式调用 `personal-ip-image-pack`，或请求真人照片个人 IP、本人/博主卡通形象、照片转卡通、人物表情包/动作包/贴纸套图：路由到个人 IP 上游；上游负责读取用户提供的 1-3 张照片，不注入默认牙仔，不把临时原型自动写入角色注册表。动物、吉祥物、虚构角色和现有牙仔/绒宝/阿龅请求不触发这条隐式路由。
 - 只有 `$dongfang-cover-design`、没有绒宝/牙仔/阿龅/IP 身份信号时：不注入任何角色参考图，不由本 adapter 组合；只有补充角色/IP 信号后才组合。
 - 只有封面/海报/方图但没有角色身份要求：不要由本 Skill 擅自接管，等待用户明确目标设计 Skill 或补充角色身份要求。
 - 角色选择遵循 `references/character-routing.md`：解析完整请求时先解析当前 Skill 根目录，再运行 `python -X utf8 <skill-root>/scripts/character_router.py --json "<request>"`；没有角色名或别名时默认 `yazai`，“这个IP/该IP”不会切换角色。只有用户明确说“使用/切换到/指定某某 IP”时才在该命令末尾加 `--explicit` 对未知名称返回支持列表；普通正文里的陌生名词不报未知 IP 错误。
-- 同一请求出现任意两个或三个注册角色时选择全部角色；每个角色分别保留身份锚点并共同参与核心动作，不把其中一个降为装饰，也不把角色融合成一个混合形象。
+- 同一请求出现两个或更多注册角色时选择全部角色；每个角色分别保留身份锚点并共同参与核心动作，不把其中一个降为装饰，也不把角色融合成一个混合形象。
 - 组合冲突按“用户明确要求 > 目标设计 Skill 契约 > 已选角色身份锚点 > adapter 默认”处理。
 - `create` 与 `prompt` 必须透传：前者执行目标 Skill 的生成，后者生成/检查目标提示词或路由计划；不要吞掉用户的画幅、材质、光线、文字、尺寸、输出路径等选项。
 - 需要封面、海报、方图、萌粒、角色锚点、转面图、3:4 信息图、3:4 贴纸页，或 Baoyu 的文章配图、知识漫画、小红书图片、幻灯片时，先运行 `scripts/design_router.py --json`。普通文章配图仍走本 Skill 原生模式；目标 Skill 有角色/IP信号时进入 `upstream` 并注入已选角色，没有信号时进入 `direct-target` 但不注入任何角色图片。
@@ -48,6 +49,7 @@ description: 生成可按名称选择绒宝、牙仔或阿龅的中文正文配�
 - `references/design-dependencies.json`：v1 设计依赖注册表；先解析当前 Skill 根目录，再运行 `<skill-root>/scripts/doctor.py --json` 只读检查可用性。
 - `scripts/design_router.py`：原生、Dongfang、Everett、Baoyu、Guizang 与 gbro 能力路由、`create|prompt` 识别、目标相关模型门禁和有序图片输入装配。
 - `scripts/dependency_utils.py`：依赖注册表校验、`install_name`/根路径解析、安装信息和只读位置探测。
+- `scripts/register_character.py`：用户明确确认后，将批准的个人 IP PNG、身份协议和名称安全写入角色注册表；冲突只有 `--update` 才可覆盖。
 - `assets/rongbao.png`：绒宝角色参考图；只读取身份特征，不复制其 3D 绒毛材质、米色背景或原始姿态。
 - `assets/yazai.png`：牙仔角色参考图；只在选择牙仔时读取身份特征，媒介由目标 Skill 决定。
 - `assets/abao.png`：阿龅角色参考图；只在选择阿龅时读取身份特征，媒介由目标 Skill 决定。
@@ -123,7 +125,7 @@ description: 生成可按名称选择绒宝、牙仔或阿龅的中文正文配�
 $skill-installer install --repo EverettFish/ip_illustration_for_yourself --path . --name ip-illustration-character-system --ref main
 ```
 
-不要复制上游代码或图片，也不要安装到仓库或用户正式 Skill 目录之外的临时位置。若用户直接调用上游 Skill 且没有角色/IP信号，保持上游原生行为，不附加任何绒宝、牙仔或阿龅图片。
+不要复制上游代码或图片，也不要安装到仓库或用户正式 Skill 目录之外的临时位置。若用户直接调用上游 Skill 且没有角色/IP信号，保持上游原生行为，不附加任何已注册 Rongbao IP 图片。
 
 如果用户使用 `prompt`，只输出目标 Skill 可执行的提示词/路由计划，不在用户未要求时生图；保留 `create|prompt` 语义和全部选项。
 
@@ -139,7 +141,7 @@ Baoyu 没有 Everett 的 GPT Image 2 门禁；只保留目标 Skill 自己的生
 $skill-installer install --repo JimLiu/baoyu-skills --path skills/baoyu-article-illustrator skills/baoyu-comic skills/baoyu-cover-image skills/baoyu-infographic skills/baoyu-slide-deck skills/baoyu-xhs-images --ref main
 ```
 
-不要复制 Baoyu 源码或素材，也不要把可选依赖安装到仓库或临时目录；用户直接调用 Baoyu 且没有角色/IP信号时，保持上游行为，不附加任何绒宝、牙仔或阿龅图片。
+不要复制 Baoyu 源码或素材，也不要把可选依赖安装到仓库或临时目录；用户直接调用 Baoyu 且没有角色/IP信号时，保持上游行为，不附加任何已注册 Rongbao IP 图片。
 
 依赖缺失时，按 `references/design-routing.md` 展示 `yang0/dongfang`、`dongfang-cover-design`、`main` 的来源和能力并请求一次确认。确认后交给系统 `$skill-installer` 从 GitHub 安装 repo `yang0/dongfang`、path `dongfang-cover-design`、ref `main`，告知下一轮 Codex 生命周期继续；拒绝则立即结束该组合路径。
 
@@ -188,6 +190,27 @@ $skill-installer install --repo pyang5166/gbro-cover-design --path . --name gbro
 ```
 
 doctor 会同时检查安装目录的 `SKILL.md` 与必需的 `references/`；本项目不复制 gbro 源码、模板、示例或素材。
+
+### 可选 Personal IP Image Pack
+
+注册表中的 `personal-ip-image-pack` 指向 [DoraRabbitYan/personal-ip-image-pack](https://github.com/DoraRabbitYan/personal-ip-image-pack)，使用仓库根目录和 `main`，上游当前未声明许可证。它适合“真人照片 → 个人卡通 IP → 表情包/动作包/贴纸套图”；普通动物 IP、品牌吉祥物、虚构角色和已注册 Rongbao 角色继续走原有路由。
+
+只有显式点名 `personal-ip-image-pack`，或出现真人照片个人 IP、本人/博主卡通形象、照片转卡通、人物表情包/动作包等信号时才路由到它。用户照片由上游 Skill 读取；Rongbao 不把牙仔作为默认参考，也不把用户照片复制到本仓库。缺失时只展示一次来源、能力和完整根目录安装参数，并请求确认：
+
+```text
+$skill-installer install --repo DoraRabbitYan/personal-ip-image-pack --path . --name personal-ip-image-pack --ref main
+```
+
+完整安装必须保留 `SKILL.md`、`references/`、`assets/` 和 `scripts/`。上游完成的原型默认只是当前任务产物；只有用户明确说“加入 Rongbao / 设为正式 IP”，并提供中文 `display_name`、英文 `id`、中英文 `aliases` 和批准 PNG 后，才执行：
+
+```text
+python -X utf8 <skill-root>/scripts/register_character.py --confirm \
+  --id <english-id> --display-name <中文名> \
+  --alias <中文名> --alias <english-id> \
+  --prototype <approved-prototype.png>
+```
+
+已有 id 或别名默认失败；只有再次明确授权并附 `--update` 才更新已有角色。注册后新角色才会像牙仔、绒宝和阿龅一样按名称解析，并作为目标设计 Skill 的身份参考图。
 
 ### 5. 原生检查与迭代
 

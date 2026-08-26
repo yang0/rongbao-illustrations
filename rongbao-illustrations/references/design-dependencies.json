@@ -171,6 +171,27 @@
         "three-round-briefing",
         "character-reference-prompt"
       ]
+    },
+    {
+      "skill_id": "personal-ip-image-pack",
+      "repo": "DoraRabbitYan/personal-ip-image-pack",
+      "path": ".",
+      "install_name": "personal-ip-image-pack",
+      "ref": "main",
+      "optional": true,
+      "purpose": "personal-photo-ip-creation",
+      "reference_policy": "personal-ip-image-pack",
+      "required_paths": [
+        "references",
+        "assets",
+        "scripts"
+      ],
+      "capabilities": [
+        "personal-ip-prototype",
+        "expression-pack",
+        "action-pack",
+        "sticker-pack"
+      ]
     }
   ]
 }

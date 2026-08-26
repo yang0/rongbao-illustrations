@@ -24,6 +24,7 @@ DONGFANG_SKILL_ID = "dongfang-cover-design"
 GUIZANG_SKILL_ID = "guizang-social-card-skill"
 GPT_IMAGE_2_STYLE_LIBRARY_ID = "gpt-image-2-style-library"
 GBRO_SKILL_ID = "gbro-cover-design"
+PERSONAL_IP_SKILL_ID = "personal-ip-image-pack"
 BAOYU_SKILL_IDS = {
     "baoyu-article-illustrator",
     "baoyu-comic",
@@ -239,6 +240,82 @@ GBRO_CAPABILITY_ALIASES: tuple[str, ...] = (
     "十种构图风格封面",
 )
 
+PERSONAL_IP_CAPABILITY_ALIASES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    (
+        "personal-ip-prototype",
+        (
+            "真人照片ip",
+            "真人照片 ip",
+            "真人照片的ip",
+            "真人照片的 ip",
+            "本人卡通形象",
+            "个人卡通形象",
+            "个人头像ip",
+            "个人头像 ip",
+            "个人ip形象",
+            "个人 ip 形象",
+            "本人ip形象",
+            "本人 ip 形象",
+            "照片转卡通",
+            "照片变卡通",
+            "真人转卡通",
+            "博主形象",
+            "博主卡通形象",
+            "personal ip",
+            "personal-ip",
+            "personal ip prototype",
+        ),
+    ),
+    (
+        "expression-pack",
+        (
+            "人物表情包",
+            "个人表情包",
+            "本人表情包",
+            "人物表情套图",
+            "personal expression pack",
+            "expression pack",
+        ),
+    ),
+    (
+        "action-pack",
+        (
+            "人物动作包",
+            "个人动作包",
+            "本人动作包",
+            "动作包",
+            "personal action pack",
+            "action pack",
+        ),
+    ),
+    (
+        "sticker-pack",
+        (
+            "人物贴纸套图",
+            "个人贴纸套图",
+            "本人贴纸套图",
+            "个人贴纸",
+            "personal sticker pack",
+            "sticker pack",
+        ),
+    ),
+)
+
+PERSONAL_IP_EXCLUSION_ALIASES: tuple[str, ...] = (
+    "动物ip",
+    "动物 ip",
+    "动物角色",
+    "动物形象",
+    "吉祥物",
+    "虚构角色",
+    "虚构ip",
+    "虚构 ip",
+    "原创角色",
+    "品牌吉祥物",
+    "animal mascot",
+    "fictional character",
+)
+
 PROMPT_ENHANCER_ALIASES: tuple[str, ...] = (
     "gpt-image-2-style-library",
     "freestylefly/awesome-gpt-image-2",
@@ -340,6 +417,54 @@ def _gbro_signal(request: str) -> bool:
         elif alias.casefold() in text:
             return True
     return False
+
+
+def _personal_ip_signal(request: str) -> bool:
+    """Detect a personal-photo IP request without stealing mascot routing.
+
+    The upstream pack is for turning one to three real-person photos into a
+    reusable personal cartoon identity.  Animal, mascot, and fictional-role
+    wording is deliberately excluded unless the user explicitly names the
+    upstream Skill itself.
+    """
+
+    text = request.casefold()
+    if _contains_ascii_token(PERSONAL_IP_SKILL_ID, text):
+        return True
+    if any(alias.casefold() in text for alias in PERSONAL_IP_EXCLUSION_ALIASES):
+        return False
+
+    for _capability, aliases in PERSONAL_IP_CAPABILITY_ALIASES:
+        for alias in aliases:
+            if alias.isascii():
+                if _contains_ascii_token(alias, text):
+                    return True
+            elif alias.casefold() in text:
+                return True
+
+    # Cover natural Chinese variants such as “用我的真人照片做个人 IP”
+    # without treating an ordinary “人物插图” request as a photo workflow.
+    has_photo = bool(re.search(r"(?:真人|个人|本人|我的)\s*(?:照片|相片|头像)", text))
+    has_personal_output = bool(
+        re.search(r"(?:个人|本人|博主|我的)\s*(?:ip|形象|卡通|头像|表情|动作)", text)
+    )
+    return has_photo and has_personal_output
+
+
+def detect_personal_ip_capability(request: str) -> str | None:
+    """Return the personal IP pack capability requested by the user."""
+
+    if not _personal_ip_signal(request):
+        return None
+    text = request.casefold()
+    for capability, aliases in PERSONAL_IP_CAPABILITY_ALIASES:
+        for alias in aliases:
+            if alias.isascii():
+                if _contains_ascii_token(alias, text):
+                    return capability
+            elif alias.casefold() in text:
+                return capability
+    return "personal-ip-prototype"
 
 
 def _prompt_enhancer_signal(request: str) -> bool:
@@ -479,6 +604,8 @@ def _capability_for_dependency(request: str, dependency: Mapping[str, Any]) -> s
         return detect_guizang_capability(request) or "xhs-social-cards"
     if skill_id == GBRO_SKILL_ID:
         return "cover-prompt-3x4"
+    if skill_id == PERSONAL_IP_SKILL_ID:
+        return detect_personal_ip_capability(request) or "personal-ip-prototype"
     return str(dependency["capabilities"][0]) if dependency.get("capabilities") else None
 
 
@@ -491,6 +618,16 @@ def _select_target(
     explicit = _explicit_dependency(request, dependencies)
     if explicit is not None:
         return explicit, _capability_for_dependency(request, explicit)
+
+    personal_ip = dependencies.get(PERSONAL_IP_SKILL_ID)
+    # Existing Rongbao character requests remain on their normal design path;
+    # a personal-photo signal is implicit only when no registered IP is named.
+    if (
+        personal_ip is not None
+        and _personal_ip_signal(request)
+        and not _registered_character_signal(request)["adapter_signal"]
+    ):
+        return personal_ip, _capability_for_dependency(request, personal_ip)
 
     # A generic Xiaohongshu request is intentionally left unresolved until the
     # caller chooses a visual system.  This keeps Guizang from silently
@@ -750,6 +887,16 @@ def _character_reference_contract(
                 "character_identity_must_not_be_reinterpreted_as_real_person": True,
             },
         )
+    if policy == "personal-ip-image-pack":
+        return (
+            "character_identity",
+            "identity reference only; do not replace user photos",
+            {
+                "character_reference_stage": "secondary",
+                "personal_ip_pack_reference": True,
+                "user_photo_inputs_remain_upstream_owned": True,
+            },
+        )
     return (
         "character_identity",
         "identity reference only",
@@ -785,6 +932,13 @@ def _reference_contract(dependency: Mapping[str, Any] | None) -> dict[str, Any]:
             "upstream_reference_semantics": (
                 "do not call Rongbao character assets human-face references; keep each IP separate"
             ),
+        }
+    if policy == "personal-ip-image-pack":
+        return {
+            "policy": policy,
+            "original_asset_is_optional_context": True,
+            "user_photo_inputs_are_not_known_to_router": True,
+            "registration_requires_explicit_user_confirmation": True,
         }
     return {"policy": policy}
 

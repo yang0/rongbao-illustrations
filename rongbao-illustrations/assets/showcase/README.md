@@ -4,7 +4,7 @@ This directory is the source-of-truth map for the IP and capability gallery in t
 
 ## Source boundary
 
-- `gallery-map.json` records the three registered IPs, every native or registered design capability, the copyable invocation, the target Skill, the expected aspect ratio, dependency-install status, and the image status.
+- `gallery-map.json` records the four registered IPs, every native or registered design capability, the copyable invocation, the target Skill, the expected aspect ratio, dependency-install status, and the image status.
 - `gallery-map.json` also records `style_variant_gallery`, which contains colorful cross-Skill examples so the gallery does not imply that every mounted Skill shares the native white-background sketch style.
 - `image_path` values point only to files already present in this repository. The comic and sticker previews are project-generated examples, not copied upstream material.
 - Every registered capability now has a local project-generated preview. These previews prove the intended capability and aspect ratio; they are not official outputs or copied assets from optional upstream Skills.
@@ -17,8 +17,9 @@ This directory is the source-of-truth map for the IP and capability gallery in t
 | 绒宝 / `rongbao` | [`rongbao.png`](../rongbao.png) | [`rongbao-identity.md`](../../references/rongbao-identity.md) | No |
 | 牙仔 / `yazai` | [`yazai.png`](../yazai.png) | [`yazai-identity.md`](../../references/yazai-identity.md) | **Yes** |
 | 阿龅 / `abao` | [`abao.png`](../abao.png) | [`abao-identity.md`](../../references/abao-identity.md) | No |
+| 小美 / `xiaomei` | [`xiaomei.png`](../xiaomei.png) | [`xiaomei-identity.md`](../../references/xiaomei-identity.md) | No |
 
-The root README displays these three original project reference files directly. The default route is Yazai when no IP name is supplied; explicit names and multi-IP requests are documented there.
+The root README displays these four original project reference files directly. The default route is Yazai when no IP name is supplied; explicit names and multi-IP requests are documented there.
 
 ## Capability gallery records
 
@@ -58,5 +59,6 @@ These additional previews are project-generated derivatives. They demonstrate th
 | gbro | 阿龅机器人降价封面 | `gbro-cover-design` | 3:4 | [`gbro-abao-robot-price.png`](gbro-abao-robot-price.png) |
 | Rongbao composition | 真实场景 + 手绘牙仔 | `rongbao-illustrations` | 4:3 | [`real-scene-handdrawn-yazai.png`](real-scene-handdrawn-yazai.png) |
 | Rongbao composition | 3D 动画电影感封面 | `rongbao-illustrations` | 16:9 | [`yazai-3d-animated-cover.png`](yazai-3d-animated-cover.png) |
+| Personal IP | IP-05 → IP-03 个人 IP 制作流程 | `personal-ip-image-pack` | 16:9 | [`xiaomei-process-collage.png`](xiaomei-process-collage.png) |
 
 The available comic and sticker files are evidence of local project output only. They are not claims that the optional target Skill is installed in this checkout or that its output contract has been independently re-run.

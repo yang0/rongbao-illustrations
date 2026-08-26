@@ -52,7 +52,7 @@ Use $rongbao-illustrations 为这个观点生成一张 16:9 正文配图：
 
 ## 按名称选择角色
 
-没有写角色名时默认使用牙仔；“这个IP / 该IP”也不会切换默认角色。可显式写绒宝、牙仔或阿龅，也可同时写任意多个角色；英文别名不区分大小写。
+没有写角色名时默认使用牙仔；“这个IP / 该IP”也不会切换默认角色。可显式写绒宝、牙仔、阿龅或已确认注册的个人 IP，也可同时写任意多个角色；英文别名不区分大小写。
 
 ```text
 Use $rongbao-illustrations 为“证据如何累积”生成一张 16:9 正文配图。
@@ -140,7 +140,7 @@ Use $rongbao-illustrations prompt 用绒宝和阿龅做一套 3:4 信息图。
 Use $rongbao-illustrations create 用阿龅做一套 3:4 主题贴纸页。
 ```
 
-直接调用 `$ip-illustration-character-system` 但不点名 Rongbao IP 时，路由为 `direct-target`，不注入绒宝、牙仔或阿龅图片。普通“生成文章配图”也保持本 Skill 原生白底手绘模式。
+直接调用 `$ip-illustration-character-system` 但不点名 Rongbao IP 时，路由为 `direct-target`，不注入任何已注册 Rongbao IP 图片。普通“生成文章配图”也保持本 Skill 原生白底手绘模式。
 
 路由命令：
 

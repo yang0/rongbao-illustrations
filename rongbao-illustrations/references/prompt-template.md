@@ -53,7 +53,7 @@ Adapt each selected character's material, stroke, edge, grain, ambient light, an
 
 每张图单独生成。根据正文内容替换变量，不要把多张图拼在一起。
 
-下面的原生模板以牙仔为默认示例，并遵循 `yazai-identity.md`。若角色解析结果是显式选择的绒宝或阿龅，替换角色段为对应身份协议（`rongbao-identity.md` 或 `abao-identity.md`）；若同时选择两个或三个角色，则分别保留每段身份描述，让所有选中角色共同承担核心动作，同时避免角色融合。
+下面的原生模板以牙仔为默认示例，并遵循 `yazai-identity.md`。若角色解析结果是显式选择的绒宝、阿龅或其他已确认注册角色，替换角色段为对应身份协议；若同时选择两个或更多角色，则分别保留每段身份描述，让所有选中角色共同承担核心动作，同时避免角色融合。
 
 ```text
 Generate one standalone 16:9 horizontal Chinese article illustration.

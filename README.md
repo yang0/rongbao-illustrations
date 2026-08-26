@@ -12,14 +12,31 @@
 | --- | --- | --- |
 | ![Dongfang 高密度封面](rongbao-illustrations/assets/showcase/dongfang-landscape-cover.png) | ![真实场景与手绘牙仔](rongbao-illustrations/assets/showcase/real-scene-handdrawn-yazai.png) | ![牙仔 3D 动画封面](rongbao-illustrations/assets/showcase/yazai-3d-animated-cover.png) |
 
-## 三个 IP
+## IP 角色
 
 | 牙仔 `yazai` · 默认 | 绒宝 `rongbao` | 阿龅 `abao` |
 | --- | --- | --- |
 | ![牙仔原图](rongbao-illustrations/assets/yazai.png) | ![绒宝原图](rongbao-illustrations/assets/rongbao.png) | ![阿龅原图](rongbao-illustrations/assets/abao.png) |
 | 未指定角色时使用。 [身份协议](rongbao-illustrations/references/yazai-identity.md) | 写“绒宝”或 `rongbao` 激活。 [身份协议](rongbao-illustrations/references/rongbao-identity.md) | 写“阿龅”或 `abao` 激活。 [身份协议](rongbao-illustrations/references/abao-identity.md) |
 
+| 小美 `xiaomei` · 已确认个人 IP |
+| --- |
+| ![小美原图](rongbao-illustrations/assets/xiaomei.png) |
+| 写“小美”或 `xiaomei` 激活。服装可变，身份锚点见 [身份协议](rongbao-illustrations/references/xiaomei-identity.md)。 |
+
 角色名可以使用中文或英文别名；同时写出多个名字时，所有角色分别读取自己的原图并共同参与画面，不会混合成一个角色。
+
+### 个人 IP 制作流程
+
+| 小美：从真人照片到可复用 IP |
+| --- |
+| ![小美个人 IP 制作流程](rongbao-illustrations/assets/showcase/xiaomei-process-collage.png) |
+| **照片授权** → 选择 IP-01~06 风格 → 读取角色身份参考 → 生成单人原型 → **用户确认** → 可选注册 Rongbao → 用于正文、封面、海报。原图只控制身份；IP 风格与目标 Skill 负责媒介、构图和版式。 |
+
+```text
+Use $rongbao-illustrations create 用小美原图按 IP-05「治愈手帐小剧场」做一张个人 IP 原型；原图只锁定长深色头发、圆润脸型和点状五官，IP-05 决定手帐媒介。
+Use $rongbao-illustrations create 用小美原图按 IP-03「粉蜡笔撞色肖像」做一套动作贴纸；保留小美身份，IP-03 决定色彩、笔触和贴纸媒介，不复制批准原图服装。
+```
 
 ## 能力画廊
 
@@ -79,9 +96,11 @@ Use $rongbao-illustrations create 用绒宝做一张横版封面。
 Use $rongbao-illustrations create 用牙仔和阿龅共同完成一张 16:9 正文配图。
 Use $rongbao-illustrations create 用阿龅做一套归藏瑞士风小红书图文。
 Use $rongbao-illustrations prompt 用牙仔让 gbro 做一张 3:4 封面提示词。
+Use $rongbao-illustrations create 用我的真人照片做一个个人卡通 IP 原型。
+Use $rongbao-illustrations create 用 personal-ip-image-pack 做一套人物表情包。
 ```
 
-只写“这个 IP”或“带 IP”时，默认使用牙仔；写“绒宝 / `rongbao`”或“阿龅 / `abao`”即可切换。gbro 只输出 3:4 提示词包，不直接生图。
+只写“这个 IP”或“带 IP”时，默认使用牙仔；写“绒宝 / `rongbao`”或“阿龅 / `abao`”即可切换。真人照片 IP 不会自动注入牙仔，也不会自动注册新角色；原型确认后，用户明确说“加入 Rongbao / 设为正式 IP”才可注册。
 
 ## 能力与可选 Skill
 
@@ -94,8 +113,9 @@ Use $rongbao-illustrations prompt 用牙仔让 gbro 做一张 3:4 封面提示�
 | [Guizang Social Card](https://github.com/op7418/guizang-social-card-skill) · AGPL-3.0 | 瑞士风、电子杂志风、小红书组图、公众号封面对、Live Photo | 3:4 / 21:9 + 1:1 | 可选；首次触发时提示确认安装 |
 | [gbro-cover-design](https://github.com/pyang5166/gbro-cover-design) · MIT | 三轮提问、10 种构图模板、角色参考提示词 | 固定 3:4 | 可选；只输出提示词，不直接生图 |
 | [GPT Image 2 Style Library](https://github.com/freestylefly/awesome-gpt-image-2) · MIT | 显式风格模板与提示词增强 | 由基础 Skill 决定 | 可选增强层，不替换目标 Skill |
+| [personal-ip-image-pack](https://github.com/DoraRabbitYan/personal-ip-image-pack) | 真人照片 → 个人卡通 IP → 表情/动作/贴纸包 | 由上游决定 | 可选按需安装；不复制源码/素材；上游未声明许可证，本项目不作推断 |
 
-这些上游项目只在明确触发对应能力时使用；Rongbao 不复制它们的源码、模板或素材。依赖缺失时会显示来源、安装参数并请求确认，安装后再调用。
+这些上游项目只在明确点名或对应意图信号触发时使用；Rongbao 不复制它们的源码、模板或素材。依赖缺失时会显示来源、安装参数并请求确认，安装后再调用。
 
 ## 安装
 
@@ -112,7 +132,7 @@ cp -R ./rongbao-illustrations "${CODEX_HOME:-$HOME/.codex}/skills/"
 python rongbao-illustrations/scripts/doctor.py --json
 ```
 
-详细行为规则：[`SKILL.md`](rongbao-illustrations/SKILL.md) · [`角色注册表`](rongbao-illustrations/references/character-registry.json) · [`设计路由`](rongbao-illustrations/references/design-routing.md) · [`示例提示词`](examples/prompts.md)
+详细行为规则：[`SKILL.md`](rongbao-illustrations/SKILL.md) · [`角色注册表`](rongbao-illustrations/references/character-registry.json) · [`设计路由`](rongbao-illustrations/references/design-routing.md) · [`角色路由与确认注册`](rongbao-illustrations/references/character-routing.md) · [`示例提示词`](examples/prompts.md)
 
 ## 来源与许可
 
@@ -120,6 +140,6 @@ python rongbao-illustrations/scripts/doctor.py --json
 
 感谢原作者创作“小黑”IP；绒宝形象来自这一 IP 设计基础，本项目在此基础上进行独立改编，并保留兼容所需的历史 Skill ID、目录和调用方式。原作者仓库：[helloianneo/ian-xiaohei-illustrations](https://github.com/helloianneo/ian-xiaohei-illustrations)。
 
-Dongfang、Everett、Baoyu、Guizang、gbro 与 GPT Image 2 Style Library 均保留各自上游仓库、作者和许可证边界；本项目只做可选依赖登记、角色参考注入和路由适配。三套 IP 原图与 showcase 展示图由本项目维护或生成。
+Dongfang、Everett、Baoyu、Guizang、gbro、GPT Image 2 Style Library 与 Personal IP Image Pack 均保留各自上游仓库、作者和许可证边界；本项目只做可选依赖登记、角色参考注入和路由适配。Personal IP Image Pack 上游当前未声明许可证，本项目不作额外许可推断。已注册 IP 原图与 showcase 展示图由本项目维护或生成。
 
 本项目采用 [MIT License](LICENSE)。更完整的来源说明见 [`NOTICE.md`](NOTICE.md)。
